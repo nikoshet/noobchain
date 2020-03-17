@@ -1,0 +1,7 @@
+Flask==0.10.1
+#rsa
+rsa==4.0
+#pycrypto
+#Crypto
+pycryptodome==3.4.3
+flask-cors

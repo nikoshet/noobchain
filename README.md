@@ -26,7 +26,8 @@ flask run
 
 ##### Linux
 ```
-
+export FLASK_APP=main.py
+flask run
 ```
 
 ### Specs

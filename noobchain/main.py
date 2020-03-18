@@ -1,17 +1,13 @@
 # Import libraries
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, make_response, session
 from noobchain.Node import Node
-from noobchain.breadcumb import breadcrumb
 from argparse import ArgumentParser
 from threading import Thread
 import time
 import os
 
-# Windows
-# os.system('set FLASK_APP=main.py')
-
 app = Flask(__name__, static_folder='static')
-app.secret_key = "super secret key"
+app.secret_key = 'nikita tsikita'
 
 #HOST = '127.0.0.1'
 #PORT = 4000
@@ -22,21 +18,51 @@ app.secret_key = "super secret key"
 
 # Home page
 @app.route('/')
-@breadcrumb('home')
 def home():
+
+    # Store host ip and port
+    session['HOST'] = HOST
+    session['PORT'] = PORT
+
+    # Keep track of current page
+    session['viewing'] = 'home'
+
     return render_template('home.html')
 
 
 # Help
 @app.route('/help', methods=['GET'])
 def help():
-    return render_template("help.html")
+    session['viewing'] = 'help'
+    return render_template('help.html')
 
 
 # About
 @app.route('/about', methods=['GET'])
 def about():
+    session['viewing'] = 'about'
     return render_template("about.html")
+
+
+# Contact
+@app.route('/contact', methods=['GET'])
+def contact():
+    session['viewing'] = 'contact'
+    return render_template("contact.html")
+
+
+# Frequently Asked Questions
+@app.route('/faq', methods=['GET'])
+def faq():
+    session['viewing'] = 'faq'
+    return render_template("faq.html")
+
+
+# User's Profile
+@app.route('/profile', methods=['GET'])
+def profile():
+    session['viewing'] = 'profile'
+    return render_template("profile.html")
 
 
 # View last transactions in the blockchain
@@ -81,7 +107,13 @@ ip_of_bootstrap = args.ip_of_bootstrap
 port_of_bootstrap = args.port_of_bootstrap
 no_of_nodes = args.nodes
 
-print('Inputs:', HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap)
+# Save HOST, PORT as cookies
+# res = make_response('Setting up Cookies')
+# res.set_cookie('host', HOST)
+# res.set_cookie('port', PORT)
+
+
+print(f'Inputs: {HOST}, {PORT}, {boot}, {ip_of_bootstrap}, {port_of_bootstrap}')
 # Start node
 t_node = Thread(target=start_new_node, args=(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes))
 t_node.start()

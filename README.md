@@ -5,11 +5,11 @@ Project for 'Distributed Systems' M.Sc. Course
 ## Contributors
 
 
-[Nick Nikitas](https://github.com/nikoshet) 
+Nick Nikitas - [03400043](https://github.com/nikoshet) 
 
-[Dimitris Zografakis](https://github.com/dimzog) 
+Dimitris Zografakis - [03400050](https://github.com/dimzog) 
 
-[Dimitris Lambrakis](https://github.com)
+Dimitris Lambrakis - [](https://github.com)
 
 
 ### Run 

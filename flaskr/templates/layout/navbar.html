@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href={% url 'home' %}>chaincutter</a>
+    <a class="navbar-brand" href="{{ 'contact.html' }}">Noobchain</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor02"
             aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -7,64 +7,40 @@
 
     <div class="collapse navbar-collapse" id="navbarColor02">
         <ul class="navbar-nav mr-auto">
-            {% if 'home' in view.breadcrumbs %}
+            {% if 'home' in g.breadcrumbs %}
             <li class="nav-item active">
                 {% else %}
             <li class="nav-item">
                 {% endif %}
-                <a class="nav-link" href={% url 'home' %}>Home</a>
+                <a class="nav-link" href="{{ url_for('home') }}">Home</a>
             </li>
 
-            {% if 'about' in view.breadcrumbs %}
+            {% if 'about' in g.breadcrumbs %}
             <li class="nav-item active">
                 {% else %}
             <li class="nav-item">
                 {% endif %}
-                <a class="nav-link" href={% url 'about' %}>About</a>
+                <a class="nav-link" href="{{ 'contact.html' }}">About</a>
             </li>
 
-            {% if 'faq' in view.breadcrumbs %}
+            {% if 'faq' in g.breadcrumbs %}
             <li class="nav-item active">
                 {% else %}
             <li class="nav-item">
                 {% endif %}
-                <a class="nav-link" href={% url 'faq' %}>FaQ</a>
+                <a class="nav-link" href="{{ 'contact.html' }}">FaQ</a>
             </li>
         </ul>
     </div>
 
 
     <ul class="navbar-nav ml-auto">
-        {% if user.is_authenticated%}
-        {% if 'profile' in view.breadcrumbs %}
         <li class="nav-item active">
-            {% else %}
-        <li class="nav-item">
-            {% endif %}
-            <a class="nav-link" href={% url 'profile' %}>Profile</a>
+            <a class="nav-link" href="{{ 'contact.html' }}">Profile</a>
         </li>
-
         <li class="nav-item">
-            <a class="nav-link" href={% url 'logout' %}>Logout</a>
+            <a class="nav-link" href="{{ 'contact.html' }}">Logout</a>
         </li>
-
-        {% else %}
-        {% if 'login' in view.breadcrumbs %}
-        <li class="nav-item active">
-            {% else %}
-        <li class="nav-item">
-            {% endif %}
-            <a class="nav-link" href={% url 'login' %}>Login</a>
-        </li>
-
-        {% if 'register' in view.breadcrumbs %}
-        <li class="nav-item active">
-            {% else %}
-        <li class="nav-item">
-            {% endif %}
-            <a class="nav-link" href={% url 'register' %}>Register</a>
-        </li>
-        {% endif %}
 
     </ul>
 </nav>

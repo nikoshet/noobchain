@@ -2,20 +2,36 @@
 
 Project for 'Distributed Systems' M.Sc. Course
 
-
-
 ## Contributors
 
 
-[Nick Nikitas](https://github.com/nikoshet) 
+Nick Nikitas - [03400043](https://github.com/nikoshet) 
 
-[Dimitris Zografakis](https://github.com/dimzog) 
+Dimitris Zografakis - [03400050](https://github.com/dimzog) 
 
-[Dimitris Lambrakis](https://github.com)
+Dimitris Lambrakis - [](https://github.com)
 
 
-## Specs
-# To-Do
+### Run 
+
+```
+pip install -r requirements.txt
+```
+
+##### Windows
+```
+set FLASK_APP=main.py
+flask run
+```
+
+##### Linux
+```
+export FLASK_APP=main.py
+flask run
+```
+
+### Specs
+### To-Do
 
 ### Licence
 Copyright © 2020 Nick Nikitas, Dimitris Zografakis, Dimitris Lambrakis

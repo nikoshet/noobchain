@@ -1,0 +1,57 @@
+<footer class="page-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col 6">
+                <h5 class="white-text">Acknowledgements</h5>
+                <p class="grey-text text-lighten-4">This project was sorely developed using Flask framework (1.0.1) for
+                    Python (3.8.1)
+                    Noobchain was created as part of examination for course "Distributed Systems".
+                    Leading and only (lonely) developers: Nikolaos Nikitas (03400043), Dimitrios Zografakis (03400050), Dimitrios Lamprakis
+                    (03400059).</p>
+            </div>
+            <div class="col 6">
+                <h5 class="white-text">Quick Links</h5>
+                <ul class="nav nav-pills">
+                    <li class="nav-link">
+                        {% if 'home' in g.breadcrumbs %}
+                        <a class="nav-link active" href="{{ 'contact.html' }}">Home</a>
+                        {% else %}
+                        <a class="nav-link" href="{{ 'contact.html' }}">Home</a>
+                        {% endif %}
+                    </li>
+
+                    <li class="nav-link">
+                        {% if 'about' in g.breadcrumbs %}
+                        <a class="nav-link active" href="{{ 'contact.html' }}">About</a>
+                        {% else %}
+                        <a class="nav-link" href="{{ 'contact.html' }}">About</a>
+                        {% endif %}
+                    </li>
+
+                    <li class="nav-link">
+                        {% if 'faq' in g.breadcrumbs %}
+                        <a class="nav-link active" href="{{ 'contact.html' }}">FaQ</a>
+                        {% else %}
+                        <a class="nav-link" href="{{ 'contact.html' }}">FaQ</a>
+                        {% endif %}
+                    </li>
+
+                    <li class="nav-link">
+                        {% if 'contact' in g.breadcrumbs %}
+                        <a class="nav-link" href="{{ 'contact.html' }}">Contact</a>
+                        {% else %}
+                        <a class="nav-link" href="{{ 'contact.html' }}">Contact</a>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="footer-copyright">
+        <div class="container">
+            © 2019-2020 chaincutter made by 03400050, 03400059. All rights reserved.
+        </div>
+    </div>
+</footer>

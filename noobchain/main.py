@@ -1,5 +1,5 @@
 # Import libraries
-from flask import Flask, jsonify, render_template, make_response, session
+from flask import Flask, jsonify, request, render_template, make_response, session
 from noobchain.Node import Node
 from argparse import ArgumentParser
 from threading import Thread
@@ -19,20 +19,16 @@ app.secret_key = 'nikita tsikita'
 # Home page
 @app.route('/')
 def home():
-
     # Store host ip and port
     session['HOST'] = HOST
     session['PORT'] = PORT
-
     # Keep track of current page
     session['viewing'] = 'home'
-
     # pass data to page call
     data = {
         'CPU_PERCENT': psutil.cpu_percent(),
         'MEM_PERCENT': psutil.virtual_memory()[2]
     }
-
     return render_template('home.html', data=data)
 
 
@@ -72,11 +68,10 @@ def profile():
 
 
 # View last transactions in the blockchain
-@app.route('/view_last_transactions', methods=['GET'])
+@app.route('/transactions/view', methods=['GET'])
 def get_transactions():
     # transactions = Blockchain.transactions
     response = 0  # {'transactions': transactions}
-    #return jsonify(response), 200
     return render_template("view_last_transactions.html")
 
 
@@ -85,8 +80,31 @@ def get_transactions():
 def show_balance():
     # transactions = blockchain.transactions
     response = 0  # {'transactions': transactions}
-    #return jsonify(response), 200
     return render_template("show_balance.html")
+
+
+# Create a transaction
+@app.route('/transactions/create', methods=['POST'])
+def create_transaction():
+    message = request.get_json()
+    response = 0
+    return jsonify(response), 200
+
+
+# Broadcast node ring to other nodes
+@app.route('/broadcast/ring', methods=['POST'])
+def create_transaction():
+    message = request.get_json()
+    response = 0
+    return jsonify(response), 200
+
+
+# Broadcast block to other nodes
+@app.route('/broadcast/block', methods=['POST'])
+def create_transaction():
+    message = request.get_json()
+    response = 0
+    return jsonify(response), 200
 
 
 # .......................................................................................

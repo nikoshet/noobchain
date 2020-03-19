@@ -15,7 +15,7 @@ class Node:
         self.address = self.get_address(self.ip, self.port)
         # Here we store information for every node, as its id, its address (ip:port) its public key and its balance
         bootstrap_address = self.get_address(ip_of_bootstrap, port_of_bootstrap)
-        self.ring = [{id:0, 'address': bootstrap_address}]
+        self.ring = [{id: 0, 'address': bootstrap_address}]
 
         # Get a public key and a private key with RSA
         self.public, self.private = self.first_time_keys()
@@ -104,10 +104,9 @@ class Node:
             self.broadcast_ring_to_nodes()
 
     def broadcast_ring_to_nodes(self):
-        for n in self.ring:
-            node_ip = n.get('ip')
-            node_port = n.get('port')
-            req = requests.post('http://' + node_ip + ':' + node_port, jsonify(self.ring))
+        for member in self.ring:
+            address = member.get('address')
+            requests.post(address + "/broadcast/block", data=jsonify(self.ring))
 
     def create_transaction(self, sender, receiver, signature):
         trans_input = 0  # previous_output_id
@@ -118,13 +117,14 @@ class Node:
 
     def broadcast_transaction(self, transaction):
         print('Broadcasting transaction')
-        sender_message = {}
+        message = {}
         # Post message in ring except me
         for member in self.ring:
-            if member.ip != self.ip:
+            if member.address != self.address:
+                address = member.get('address')
                 # Post request
                 # send to ring.sender
-                return True
+                requests.post(address+"/transactions/create", data=message)
 
     def validate_transaction(self, transaction, signature, sender):
         # Use of signature and NBCs balance
@@ -143,14 +143,16 @@ class Node:
         return True
 
     def broadcast_block(self):
+        message = {}
         for member in self.ring:
-            if member.ip != self.ip:
+            address = member.get('address')
+            if address != self.address:
                 # request POST block to member
-                return True
+                requests.post(address + "/broadcast/block", data=message)
+                #return True
 
     def valid_proof(self):  # , .., difficulty=MINING_DIFFICULTY):
         return True
-
 
     ### Concencus functions ###
 

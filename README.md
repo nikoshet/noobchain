@@ -38,9 +38,7 @@ flask run
 
 ### Licence
 
-css link: [darkly](https://bootswatch.com/darkly/)
-css author: [Thomas Park](https://thomaspark.co/)
-
+css used is under the MIT License and can be found here:[darkly](https://bootswatch.com/darkly/)
 
 Copyright © 2020 Nick Nikitas, Dimitris Zografakis, Dimitris Lambrakis
 

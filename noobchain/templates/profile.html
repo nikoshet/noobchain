@@ -2,43 +2,83 @@
 
 {% block content %}
 
-<div class="container">
-
-    <div class="row"></div>
-    <div class="divider"></div>
-    <div class="row"></div>
-
-
     <div class="row">
-        <div class="card-panel grey lighten-5 z-depth-1">
-            <div class="row valign-wrapper center">
-                <div class="col s6">
-                    <img src="{{url_for('static', filename='profile_image.png')}}" alt="" style="height:150px;"
-                         class="circle responsive-img">
-                </div>
-                <div class="col s6">
-                    <h5 class="display-5">Hello, {{ session['HOST'] }}!</h5>
-                    <p class="flow-text">Running port: {{ session['PORT'] }}.</br>
-                        Minned Blocks: {# {{ user.profile.attending_course }} #}.</p>
-                </div>
-            </div>
-        </div>
-        <div class="divider"></div>
-    </div>
+        <div class="col-2"></div>
+        <div class="col-8">
+            <div class="jumbotron">
+                <div class="container" xmlns="http://www.w3.org/1999/html">
 
-    <p style="margin-bottom:2cm;"></p>
+                    <div class="row"></div>
+                    <div class="divider"></div>
+                    <div class="row"></div>
 
-    <div class="row">
-        <div class="col s12">
-            <h5 class="display 5">Statistics</h5></div>
-    </div>
 
-    <p style="margin-bottom:2cm;"></p>
+                    <div class="row">
+                        <div class="card-panel grey lighten-5 z-depth-1">
+                            <div class="row valign-wrapper center">
+                                <div class="col s6">
+                                    <img src="{{ url_for('static', filename='profile_image.png') }}" alt=""
+                                         style="height:150px;"
+                                         class="circle responsive-img">
+                                </div>
+                                <div class="col s6">
+                                    <p style="margin-top:1cm;"></p>
+                                    <h5 class="display-5">Hello, {{ session['HOST'] }}!</h5>
+                                    <p class="flow-text">Running port: {{ session['PORT'] }}.</br>
+                                        Minned Blocks: {# {{ user.profile.attending_course }} #}.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="divider"></div>
+                    </div>
 
-    <div class="row">
-        <div class="col s6">
-            <h5 class="display-5">Latest Transactions: {# {{ user.profile.chapter_studying }} #}</h5>
-            {#
+                    <p style="margin-bottom:1cm;"></p>
+
+                    <p style="margin-bottom:1cm;"></p>
+                    <div class="row">
+                        <div class="col s12">
+                            <h5 class="display 5">Account Stats</h5></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col s3">
+                            <h6 class="display-6">Available Balance</br>
+                                Received</br>
+                                Sent</h6>
+                        </div>
+                        <div class="col s3">
+                            <h6 class="display-6">:{{ 0 }} noobcoins</br>
+                                :{{ 0 }} noobcoins</br>
+                                :{{ 0 }} noobcoins</h6>
+                        </div>
+                        <div class="col s3"></div>
+                        <div class="col s3"></div>
+                    </div>
+
+                    <p style="margin-bottom:1cm;"></p>
+
+                    <div class="row">
+                        <div class="col s6">
+                            <h5 class="display-5">Latest Transactions:</h5>
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th scope="col">From</th>
+                                    <th scope="col">To</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col">Date</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr class="table-active">
+                                    <th scope="row">Primary</th>
+                                    <td>Column content</td>
+                                    <td>Column content</td>
+                                    <td>Column content</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            {#
             {% for stat_c in stats_cat %}
             {% if stat_c.bad_at %}
             {{ stat_c.category }},
@@ -46,32 +86,41 @@
             {% endfor %}
 
             #}
-        </div>
+                        </div>
 
-        <div class="col s6">
-            <form>
-                <fieldset>
-                    <h5 class="display-5">Make a payment</h5>
-                    <div class="form-group">
-                        <label for="sendIp">IP to deliver coins</label>
-                        <input type="password" class="form-control" id="sendIp" placeholder="0.0.0.0">
+                        <div class="col s6">
+                            <div class="card border-secondary mb-3">
+                                <form>
+                                    <fieldset>
+                                        <div class="card-header">Make a payment</div>
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label for="sendIp">IP to deliver coins</label>
+                                                <input type="password" class="form-control" id="sendIp"
+                                                       placeholder="0.0.0.0">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="sendAmount">Amount</label>
+                                                <input type="password" class="form-control" id="sendAmount"
+                                                       placeholder="30">
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                        </div>
+                                    </fieldset>
+                                </form>
+
+                                <p style="margin-bottom:2cm;"></p>
+
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="sendAmount">Amount</label>
-                        <input type="password" class="form-control" id="sendAmount" placeholder="30">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </fieldset>
-            </form>
 
-            <p style="margin-bottom:2cm;"></p>
+                    <div class="divider"></div>
+                    <div class="row"></div>
 
+                </div>
+            </div>
         </div>
+        <div class="col-2"></div>
     </div>
-
-    <div class="divider"></div>
-    <div class="row"></div>
-
-</div>
-
 {% endblock %}

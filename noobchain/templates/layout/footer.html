@@ -1,44 +1,52 @@
 <footer class="page-footer">
-    <div class="container">
         <div class="row">
-            <div class="col-6">
+            <div class="col-1"></div>
+            <div class="col-5">
                 <h5 class="white-text">Acknowledgements</h5>
                 <p class="grey-text text-lighten-4">This project was sorely developed using Flask framework (1.0.1) for
                     Python (3.8.1)
                     Noobchain was created as part of examination for course "Distributed Systems".
-                    Leading and only (lonely) developers: Nikolaos Nikitas (03400043), Dimitrios Zografakis (03400050), Dimitrios Lamprakis
+                    Leading and only (lonely) developers: Nikolaos Nikitas (03400043), Dimitrios Zografakis (03400050),
+                    Dimitrios Lamprakis
                     (03400059).</p>
+
+                        <div class="footer-copyright">
+            © 2019-2020 Noobchain made by 03400043, 03400050, 03400059. All rights reserved.
+        </div>
             </div>
-            <div class="col-6">
+            <div class="col-5">
                 <h5 class="white-text">Quick Links</h5>
                 <ul class="nav nav-pills">
                     <li class="nav-link">
-                        <a class="nav-link {{'active' if 'home'==session['viewing'] }}" href="{{ url_for('home') }}">Home</a>
+                        <a class="nav-link {{ 'active' if 'home'==session['viewing'] }}" href="{{ url_for('home') }}">Home</a>
                     </li>
 
                     <li class="nav-link">
-                        <a class="nav-link {{'active' if 'about'==session['viewing'] }}" href="{{ url_for('about') }}">About</a>
+                        <a class="nav-link {{ 'active' if 'about'==session['viewing'] }}" href="{{ url_for('about') }}">About</a>
                     </li>
 
                     <li class="nav-link">
-                        <a class="nav-link {{'active' if 'faq'==session['viewing'] }}" href="{{ url_for('faq') }}">FaQ</a>
+                        <a class="nav-link {{ 'active' if 'faq'==session['viewing'] }}"
+                           href="{{ url_for('faq') }}">FaQ</a>
                     </li>
 
                     <li class="nav-link">
-                        <a class="nav-link {{ 'active' if 'contact'==session['viewing'] }}" href="{{ url_for('contact') }}">Contact</a>
+                        <a class="nav-link {{ 'active' if 'contact'==session['viewing'] }}"
+                           href="{{ url_for('contact') }}">Contact</a>
                     </li>
 
                     <li class="nav-link">
                         <a class="nav-link {{ 'active' if 'help'==session['viewing'] }}" href="{{ url_for('help') }}">Help</a>
                     </li>
+
+                    <li class="nav-link">
+                        <a class="nav-link {{ 'active' if 'profile'==session['viewing'] }}"
+                           href="{{ url_for('profile') }}">Profile</a>
+                    </li>
                 </ul>
             </div>
+            <div class="col-1"></div>
         </div>
     </div>
 
-    <div class="footer-copyright">
-        <div class="container">
-            © 2019-2020 Noobchain made by 03400043, 03400050, 03400059. All rights reserved.
-        </div>
-    </div>
 </footer>

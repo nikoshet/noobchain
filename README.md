@@ -37,5 +37,10 @@ flask run
 ### To-Do
 
 ### Licence
+
+css link: [darkly](https://bootswatch.com/darkly/)
+css author: [Thomas Park](https://thomaspark.co/)
+
+
 Copyright © 2020 Nick Nikitas, Dimitris Zografakis, Dimitris Lambrakis
 

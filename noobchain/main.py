@@ -4,7 +4,7 @@ from noobchain.Node import Node
 from argparse import ArgumentParser
 from threading import Thread
 import time
-import os
+import psutil
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'nikita tsikita'
@@ -27,7 +27,13 @@ def home():
     # Keep track of current page
     session['viewing'] = 'home'
 
-    return render_template('home.html')
+    # pass data to page call
+    data = {
+        'CPU_PERCENT': psutil.cpu_percent(),
+        'MEM_PERCENT': psutil.virtual_memory()[2]
+    }
+
+    return render_template('home.html', data=data)
 
 
 # Help
@@ -119,7 +125,7 @@ t_node = Thread(target=start_new_node, args=(HOST, PORT, boot, ip_of_bootstrap, 
 t_node.start()
 
 
-if __name__ == "main":#'__main__':
+if __name__ == '__main__':
     time.sleep(2)
     # connection string to database (for user retrieval)
     #conn = ''
@@ -127,4 +133,4 @@ if __name__ == "main":#'__main__':
     #user = Node(id=1, conn=conn)
     #print(user)
     # Start Flask app
-    app.run(host=HOST, port=PORT)
+    app.run(host=HOST, port=PORT, debug=True)

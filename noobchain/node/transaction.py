@@ -22,11 +22,13 @@ class Transaction:
         self.transaction_outputs = 0                # id: (Amount Transferred, Change)
         self.signature = signature                  # Proof that sender requested transaction
 
-    def to_dict(self):
-        return True
+    def create_transaction(self, ):
+
+        return 0
 
     def sign_transaction(self, private_key):
-        """
-        Sign transaction with private key
-        """
+        self.signature = private_key
+        return self
+
+
 

@@ -10,8 +10,3 @@ class Block:
 		self.nonce = nonce						# Proof of work
 		self.current_hash = current_hash		# Current hash
 		self.previous_hash = previous_hash		# Connecting hash to previous block
-
-	def __str__(self):
-		return f'\nNode [{self.index}\nAdded: {self.timestamp}\nProof: {self.proof}\nPrevious: {self.previous_hash}\n'
-
-

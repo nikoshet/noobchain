@@ -17,16 +17,19 @@ class Block:
 
 	def to_od(self):
 
-		od = OrderedDict([
-			('index', self.index),
-			('timestamp', self.timestamp),
-			('transactions', ([trans.to_od() for trans in self.transactions])),
-			('nonce', self.nonce),
-			('current_hash', self.current_hash),
-		])
+		if self.od is None:
+			od = OrderedDict([
+				('index', self.index),
+				('timestamp', self.timestamp),
+				# Use hash of each transaction, instead of it's dictionary
+				('transactions', ([trans.get_hash() for trans in self.transactions])),
+				# ('transactions', ([trans.to_od() for trans in self.transactions])),
+				('nonce', self.nonce),
+				('current_hash', self.current_hash),
+			])
 
-		# store it for future usage
-		self.od = od
+			# store it for future usage
+			self.od = od
 
 		return self.od
 
@@ -38,6 +41,7 @@ class Block:
 
 		# Calculate hash only if not available, avoid calculations
 		if self.current_hash is None:
-			self.current_hash = sha256(str(self.od).encode()).hexdigest()
+			#self.current_hash = sha256(str(self.od).encode()).hexdigest()
+			self.current_hash = sha256(str(self.od).encode('utf-8'))
 
 		return self.current_hash

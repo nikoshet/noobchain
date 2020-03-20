@@ -23,16 +23,19 @@ class Transaction:
 
     def to_od(self):
 
-        # Convert object to ordered dictionary (so it produces same results every time)
-        od = OrderedDict([
-            ('sender_address', self.sender_address),
-            ('receiver_address', self.receiver_address),
-            ('amount', self.amount),
-            ('transaction_id', self.transaction_id),
-            ('transaction_inputs', self.transaction_inputs),
-            ('transaction_outputs', self.transaction_outputs),
-            ('signature', self.signature),
-        ])
+        if self.od is None:
+            # Convert object to ordered dictionary (so it produces same results every time)
+            od = OrderedDict([
+                ('sender_address', self.sender_address),
+                ('receiver_address', self.receiver_address),
+                ('amount', self.amount),
+                ('transaction_id', self.transaction_id),
+                ('transaction_inputs', self.transaction_inputs),
+                ('transaction_outputs', self.transaction_outputs),
+                ('signature', self.signature),
+            ])
+
+            self.od = od
 
         # Return sha256 of that dictionary
         # return sha256(json.dumps(_, sort_keys=True).digest())
@@ -41,7 +44,6 @@ class Transaction:
         # return json.dumps(od, sort_keys=True)
 
         # store it for future usage
-        self.od = od
 
         return self.od
 
@@ -53,7 +55,8 @@ class Transaction:
 
         # Calculate hash only if not available, avoid calculations
         if self.current_hash is None:
-            self.current_hash = sha256(str(self.od).encode()).hexdigest()
+            #self.current_hash = sha256(str(self.od).encode()).hexdigest()
+            self.current_hash = sha256(str(self.od).encode('utf-8'))
 
         return self.current_hash
 

@@ -14,6 +14,15 @@ class Blockchain:
 		# List of added blocks
 		self.blocks = [self.genesis]
 
+	def __str__(self):
+		chain = f'{self.genesis.index} ({0})'
+
+		# ignore genesis
+		for block in self.blocks[1:]:
+			chain += f'{block.index} ({block.current_hash.hexdigest()}) -> '
+
+		return chain[:-4]
+
 	def add_block(self, new_block):
 		self.blocks.append(new_block)
 
@@ -21,15 +30,13 @@ class Blockchain:
 
 	def proof_of_work(self, difficulty):
 
-		# grab last block of chain
-		block_last = self.blocks[-1]
-		last_hash = block_last.previous_hash
+		# grab hash of latest block in the chain
+		prev_hash = self.blocks[-1].get_hash()
 		proof = 0
+		prev_hash.update(f'{proof}{prev_hash.hexdigest()}'.encode('utf-8'))
 
-		# Join all transactions in block
-		transactions = str([transaction.to_json().digest() for transaction in block_last.transactions])
-
-		while not sha256(transactions + str(last_hash) + str(proof))[:difficulty] == '0'*difficulty:
+		while prev_hash.hexdigest()[:difficulty] != '0'*difficulty:
+			prev_hash.update(f'{proof}{prev_hash.hexdigest()}'.encode('utf-8'))
 			proof += 1
 
 		return proof

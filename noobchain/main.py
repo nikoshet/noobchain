@@ -44,6 +44,8 @@ app.register_blueprint(layout_views.blueprint)            # Page Navigation
 app.register_blueprint(blockchain_views.blueprint)        # Functionality
 
 
+print('\n------------------------------------------------------------------')
+print('Testing\n\n')
 # Dummy variables
 sender_address = 'sender_public_key'
 receiver_address = 'receiver_public_key'
@@ -60,12 +62,22 @@ t2 = Transaction(sender_address=sender_address, receiver_address=receiver_addres
                           amount=amount, transaction_inputs=transaction_inputs,
                           transaction_outputs=transaction_outputs)
 
+print(f'Transactions Example\n{t1.to_od()}')
+print(f'\nHash: {t1.get_hash()}')
 
 block = Block(index=0, transactions=[t1, t2], nonce=0, previous_hash=0)
 
-print(block.to_od())
-print()
-print(block.get_hash())
+print(f'\nBlock Details example\n{block.to_od()}')
+print(f'\nHash: {block.get_hash().hexdigest()}')
+
+blockchain = Blockchain()
+blockchain.add_block(block)
+
+print('\nBlockchain example')
+print(blockchain)
+print(f'\nProof of Work for {blockchain.blocks[-1].current_hash.hexdigest()}: {blockchain.proof_of_work(difficulty=1)}\n')
+print('------------------------------------------------------------------\n')
+
 
 # .......................................................................................
 # Function for node

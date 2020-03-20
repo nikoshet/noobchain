@@ -1,28 +1,13 @@
 # Import libraries
-from flask import Flask, jsonify, request, render_template, make_response, session
+from flask import Flask
 from argparse import ArgumentParser
-from threading import Thread
-import time
-import psutil
-
-from noobchain.node.node import Node
-from noobchain.rest_api import my_rest_api
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sec_key'
 app.config['TESTING'] = True
-app.register_blueprint(my_rest_api)
 
 #HOST = '127.0.0.1'
 #PORT = 4000
-
-
-# .......................................................................................
-# Function for node
-def start_new_node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes):
-    print("New node")
-    new_node = Node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes)
-
 
 # Arguments
 parser = ArgumentParser()
@@ -44,6 +29,26 @@ port_of_bootstrap = args.port_bootstrap
 no_of_nodes = args.nodes
 capacity = args.cap
 difficulty = args.dif
+
+
+from threading import Thread
+import time
+from noobchain.node.node import Node
+from noobchain.views import layout_views, blockchain_views
+
+# Register Views
+app.register_blueprint(layout_views.blueprint)            # Page Navigation
+app.register_blueprint(blockchain_views.blueprint)        # Functionality
+
+
+# .......................................................................................
+# Function for node
+def start_new_node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes):
+    print("New node")
+    new_node = Node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes)
+
+
+
 # Save HOST, PORT as cookies
 # res = make_response('Setting up Cookies')
 # res.set_cookie('host', HOST)
@@ -51,16 +56,12 @@ difficulty = args.dif
 
 print(f'Inputs: {HOST}, {PORT}, {boot}, {ip_of_bootstrap}, {port_of_bootstrap}, {capacity}, {difficulty}')
 # Start node
-t_node = Thread(target=start_new_node, args=(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes))
-t_node.start()
+#t_node = Thread(target=start_new_node, args=(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes))
+#t_node.start()
 
 
 if __name__ == '__main__':
     time.sleep(2)
-    # connection string to database (for user retrieval)
-    #conn = ''
-    # Create instance of user, each user has a wallet attached to him
-    #user = Node(id=1, conn=conn)
-    #print(user)
+
     # Start Flask app
     app.run(host=HOST, port=PORT, debug=True)

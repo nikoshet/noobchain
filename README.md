@@ -9,24 +9,14 @@ Project for 'Distributed Systems' M.Sc. Course
 ```
 [o] generate_wallet()
 Δημιουργεί νέο wallet, δλδ ξεύγος public/private key χρησιμοποιώντας τον κρυπτογραφικό αλγόριθμο
-RSA. 
-```
+RSA.
 
-##### Wallet
-```
-[x] wallet_balance()
-Μπορούμενα βρούμε το υπόλοιπο οποιουδήποτε wallet προσθέτοντας όλα τα UTXOs που έχουν
-παραλήπτη το συγκεκριμένο wallet.
-```
-
-##### Transactions
-```
 [x] create_transaction()
 Δημιουργείται ένα νέο transaction που περιέχει όλα τα στοιχεία που απαιτούνται. Εδώ το πεδίο
 transaction_inputs γεμίζει με τα Transaction Input που περιέχουν τα ids των UTXOs που απαιτούνται
 για να συμπληρωθεί το ποσό που θέλουμενα ξοέψουμε.
 
-[o] sign_transaction()
+[x] sign_transaction()
 Υπογράφεται το transaction με το private key του wallet.
 
 [x] broadcast_transaction()
@@ -42,7 +32,12 @@ Eπαληθεύεται η ορθότητα του transaction που έχει �
 επιτευχθεί το (β) ελέγχεται αν τα transaction inputs είναι πράγματι unspent transactions, αν είναι
 αφαιρούνται από τη λίστα των UTXO του κόμβου. Δημιουργούνται τα δύο Transaction Outputs και
 προστίθενται στη λίστα στη λίστα UTXO του node μας.
+
+[x] wallet_balance()
+Μπορούμενα βρούμε το υπόλοιπο οποιουδήποτε wallet προσθέτοντας όλα τα UTXOs που έχουν
+παραλήπτη το συγκεκριμένο wallet.
 ```
+
 
 ##### Blockchain
 ```
@@ -71,6 +66,10 @@ validate_block για όλα τα blocks εκτός του genesis.
 γιατί το πεδίο previous_hash δεν ισούται με το hash του προηγούμενου block. Αυτό μπορεί να σημαίνει
 ότι έχει δημιουργηθεί κάποια διακλάδωση, η οποία πρέπει να επιλυθεί. Ο κόμβος ρωτάει τους
 υπόλοιπους για το μήκος του blockchain και επιλέγει να υιοθετήσει αυτό με το μεγαλύτερο μήκος
+
+[x] wallet_balance()
+Μπορούμενα βρούμε το υπόλοιπο οποιουδήποτε wallet προσθέτοντας όλα τα UTXOs που έχουν
+παραλήπτη το συγκεκριμένο wallet.
 ```
 
 ## Contributors

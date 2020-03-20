@@ -20,7 +20,7 @@ class Transaction:
         self.transaction_id = 0                     # Transaction Id
         self.transaction_inputs = 0                 # Previous Transaction Id
         self.transaction_outputs = 0                # id: (Amount Transferred, Change)
-        self.signature = signature                  # Proof that sender requested transaction
+        self.signature = ''                  # Proof that sender requested transaction
 
     def create_transaction(self, ):
 

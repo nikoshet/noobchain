@@ -27,6 +27,7 @@ class Node:
 
         self.bkchain = Blockchain()
         self.new_block = 0
+        self.trans = 0
         # Check if node is bootstrap
         self.is_bootstrap = is_bootstrap
 
@@ -49,6 +50,8 @@ class Node:
                f'\n{self.name} {self.surname}' \
                f'\nPublic key:\n{self.public}' \
                f'\nPrivate key:\n{self.private}'
+
+    ### General functions ###
 
     # Return address of ip, port
     def get_address(self, ip, port):
@@ -83,15 +86,8 @@ class Node:
     # Create first block of blockchain (for Bootstrap)
     def create_genesis_block(self):
         self.create_new_block(previous_hash=1, nonce=0)
-        self.create_transaction(0, self.wallet.public_key, 0, self.no_of_nodes * 100)
-        self.mine_block(self.new_block)
-
-    def create_new_block(self, previous_hash, nonce):
-
-        new_block_index = len(self.bkchain.blocks)
-        self.new_block = Block(new_block_index, nonce, previous_hash)
-
-        return True
+        self.trans = self.create_transaction(0, self.wallet.public_key, 0, self.no_of_nodes * 100)
+        self.add_transaction_to_block(self, self.new_block, self.trans)
 
     def register_node_to_ring(self, node_ip, node_port):
         # Add this node to the ring, only the bootstrap node can add a node to the ring after checking his wallet and ip:port address
@@ -118,6 +114,8 @@ class Node:
             address = member.get('address')
             requests.post(address + "/broadcast/block", data=jsonify(self.ring))
 
+    ### Transaction functions ###
+
     def create_transaction(self, sender, receiver, signature, value):
         trans_input = 0  # previous_output_id
         trans_output = {'id_of_transaction': 1, 'receiver': receiver,
@@ -125,6 +123,7 @@ class Node:
         my_trans = 0
         # remember to broadcast it
         self.broadcast_transaction(my_trans)
+        return my_trans
 
     def broadcast_transaction(self, transaction):
         print('Broadcasting transaction')
@@ -144,6 +143,13 @@ class Node:
         return True  # else False
 
     def verify_signature(self):
+        return True
+
+    ### Block functions ###
+
+    def create_new_block(self, previous_hash, nonce):
+        new_block_index = len(self.bkchain.blocks)
+        self.new_block = Block(new_block_index, nonce, previous_hash)
         return True
 
     def add_transaction_to_block(self, block, transaction):

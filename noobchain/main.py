@@ -119,8 +119,8 @@ parser = ArgumentParser()
 parser.add_argument('-ip', default='0.0.0.0', type=str, help='ip of node')
 parser.add_argument('-p', '--port', default=1000, type=int, help='port to listen on')
 parser.add_argument('-bootstrap', default=True, type=bool, help='is node bootstrap?')
-parser.add_argument('-ip_of_bootstrap', default='0.0.0.0', type=bool, help='ip of bootstrap')
-parser.add_argument('-port_of_bootstrap', default=1000, type=bool, help='port of bootstrap')
+parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=bool, help='ip of bootstrap')
+parser.add_argument('-port_bootstrap', default=1000, type=bool, help='port of bootstrap')
 parser.add_argument('-nodes', default=5, type=int, help='number of nodes')
 parser.add_argument('-cap', default=1, type=int, help='capacity of blocks')
 parser.add_argument('-dif', default=4, type=int, help='difficulty')
@@ -129,8 +129,8 @@ args, _ = parser.parse_known_args()
 HOST = args.ip
 PORT = args.port
 boot = args.bootstrap
-ip_of_bootstrap = args.ip_of_bootstrap
-port_of_bootstrap = args.port_of_bootstrap
+ip_of_bootstrap = args.ip_bootstrap
+port_of_bootstrap = args.port_bootstrap
 no_of_nodes = args.nodes
 capacity = args.cap
 difficulty = args.dif

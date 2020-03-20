@@ -3,6 +3,9 @@ from Crypto.PublicKey import RSA
 import re
 import requests
 from flask import jsonify
+from noobchain.Block import Block
+from noobchain.Blockchain import Blockchain
+from noobchain.main import capacity, difficulty
 
 class Node:
 
@@ -15,13 +18,15 @@ class Node:
         self.address = self.get_address(self.ip, self.port)
         # Here we store information for every node, as its id, its address (ip:port) its public key and its balance
         bootstrap_address = self.get_address(ip_of_bootstrap, port_of_bootstrap)
-        self.ring = [{id: 0, 'address': bootstrap_address}]
+        self.ring = [{id: str.join('id', str(0)), 'address': bootstrap_address}]
 
         # Get a public key and a private key with RSA
         self.public, self.private = self.first_time_keys()
         # Create wallet
         self.wallet = self.generate_wallet(self.public, self.private)
 
+        self.bkchain = Blockchain()
+        self.new_block = 0
         # Check if node is bootstrap
         self.is_bootstrap = is_bootstrap
 
@@ -39,7 +44,6 @@ class Node:
         #else:
         #    self.id = id
 
-
     def __str__(self):
         return f'------ PRINTING DETAILS FOR USER: [{self.id}] ------' \
                f'\n{self.name} {self.surname}' \
@@ -47,7 +51,7 @@ class Node:
                f'\nPrivate key:\n{self.private}'
 
     # Return address of ip, port
-    def get_address(self,ip,port):
+    def get_address(self, ip, port):
         return 'http://' + str(ip) + ':' + str(port)
 
     # Get a public key and a private key with RSA
@@ -79,8 +83,14 @@ class Node:
     # Create first block of blockchain (for Bootstrap)
     def create_genesis_block(self):
         self.create_new_block(previous_hash=1, nonce=0)
+        self.create_transaction(0, self.wallet.public_key, 0, self.no_of_nodes * 100)
+        self.mine_block(self.new_block)
 
     def create_new_block(self, previous_hash, nonce):
+
+        new_block_index = len(self.bkchain.blocks)
+        self.new_block = Block(new_block_index, nonce, previous_hash)
+
         return True
 
     def register_node_to_ring(self, node_ip, node_port):
@@ -100,17 +110,18 @@ class Node:
         message = {'sender': 'http://' + self.ip + ':' + self.port, 'receiver': 'http://' + node_ip + ':' + node_port,
                    'value': value}
         req = requests.post('http://' + node_ip + ':' + node_port, jsonify(message))
-        if len(self.ring) == self.no_of_nodes:
-            self.broadcast_ring_to_nodes()
+        #if len(self.ring) == self.no_of_nodes:
+        #    self.broadcast_ring_to_nodes()
 
     def broadcast_ring_to_nodes(self):
         for member in self.ring:
             address = member.get('address')
             requests.post(address + "/broadcast/block", data=jsonify(self.ring))
 
-    def create_transaction(self, sender, receiver, signature):
+    def create_transaction(self, sender, receiver, signature, value):
         trans_input = 0  # previous_output_id
-        trans_output = {'id_of_transaction': 1, 'receiver': 0, 'sender': 0, 'money': 1}
+        trans_output = {'id_of_transaction': 1, 'receiver': receiver,
+                        'sender': sender, 'value': value, 'signature': signature}
         my_trans = 0
         # remember to broadcast it
         self.broadcast_transaction(my_trans)
@@ -120,8 +131,8 @@ class Node:
         message = {}
         # Post message in ring except me
         for member in self.ring:
-            if member.address != self.address:
-                address = member.get('address')
+            address = member.get('address')
+            if address != self.address:
                 # Post request
                 # send to ring.sender
                 requests.post(address+"/transactions/create", data=message)
@@ -135,15 +146,23 @@ class Node:
     def verify_signature(self):
         return True
 
-    def add_transaction_to_block(self):
-        # if enough transactions  mine
+    def add_transaction_to_block(self, block, transaction):
+        # if transaction is for genesis block
+        if len(self.bkchain.blocks) == 0:
+            self.mine_block(block)
+        # if enough transactions mine
+        if len(self.new_block.transactions) == capacity:
+            self.mine_block(block)
+        # append transaction to block
+        else:
+            self.new_block.transactions.append(transaction)
+        #return True
+
+    def mine_block(self, blk):
         return True
 
-    def mine_block(self):
-        return True
-
-    def broadcast_block(self):
-        message = {}
+    def broadcast_block(self, new_block):
+        message = new_block #{}
         for member in self.ring:
             address = member.get('address')
             if address != self.address:
@@ -151,7 +170,8 @@ class Node:
                 requests.post(address + "/broadcast/block", data=message)
                 #return True
 
-    def valid_proof(self):  # , .., difficulty=MINING_DIFFICULTY):
+    def valid_proof(self):
+        MINING_DIFFICULTY = difficulty
         return True
 
     ### Concencus functions ###

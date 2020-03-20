@@ -7,7 +7,7 @@ import time
 import psutil
 
 app = Flask(__name__, static_folder='static')
-app.secret_key = 'nikita tsikita'
+app.secret_key = 'sec_key'
 
 #HOST = '127.0.0.1'
 #PORT = 4000
@@ -93,7 +93,7 @@ def create_transaction():
 
 # Broadcast node ring to other nodes
 @app.route('/broadcast/ring', methods=['POST'])
-def create_transaction():
+def broadcast_ring():
     message = request.get_json()
     response = 0
     return jsonify(response), 200
@@ -101,7 +101,7 @@ def create_transaction():
 
 # Broadcast block to other nodes
 @app.route('/broadcast/block', methods=['POST'])
-def create_transaction():
+def broadcast_block():
     message = request.get_json()
     response = 0
     return jsonify(response), 200
@@ -122,6 +122,8 @@ parser.add_argument('-bootstrap', default=True, type=bool, help='is node bootstr
 parser.add_argument('-ip_of_bootstrap', default='0.0.0.0', type=bool, help='ip of bootstrap')
 parser.add_argument('-port_of_bootstrap', default=1000, type=bool, help='port of bootstrap')
 parser.add_argument('-nodes', default=5, type=int, help='number of nodes')
+parser.add_argument('-cap', default=1, type=int, help='capacity of blocks')
+parser.add_argument('-dif', default=4, type=int, help='difficulty')
 #args = parser.parse_args()
 args, _ = parser.parse_known_args()
 HOST = args.ip
@@ -130,7 +132,8 @@ boot = args.bootstrap
 ip_of_bootstrap = args.ip_of_bootstrap
 port_of_bootstrap = args.port_of_bootstrap
 no_of_nodes = args.nodes
-
+capacity = args.cap
+difficulty = args.dif
 # Save HOST, PORT as cookies
 # res = make_response('Setting up Cookies')
 # res.set_cookie('host', HOST)

@@ -33,13 +33,39 @@ difficulty = args.dif
 
 from threading import Thread
 import time
+from hashlib import sha256
 from noobchain.node.node import Node
 from noobchain.views import layout_views, blockchain_views
-
+from noobchain.node.transaction import Transaction
+from noobchain.blockchain.block import Block
+from noobchain.blockchain.blockchain import Blockchain
 # Register Views
 app.register_blueprint(layout_views.blueprint)            # Page Navigation
 app.register_blueprint(blockchain_views.blueprint)        # Functionality
 
+
+# Dummy variables
+sender_address = 'sender_public_key'
+receiver_address = 'receiver_public_key'
+amount = 5
+transaction_inputs = 0
+transaction_outputs = {1, (4, 1)}
+
+# create new transaction
+t1 = Transaction(sender_address=sender_address, receiver_address=receiver_address,
+                          amount=amount, transaction_inputs=transaction_inputs,
+                          transaction_outputs=transaction_outputs)
+
+t2 = Transaction(sender_address=sender_address, receiver_address=receiver_address,
+                          amount=amount, transaction_inputs=transaction_inputs,
+                          transaction_outputs=transaction_outputs)
+
+
+block = Block(index=0, transactions=[t1, t2], nonce=0, previous_hash=0)
+
+print(block.to_od())
+print()
+print(block.get_hash())
 
 # .......................................................................................
 # Function for node

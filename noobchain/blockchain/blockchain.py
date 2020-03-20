@@ -27,7 +27,7 @@ class Blockchain:
 		proof = 0
 
 		# Join all transactions in block
-		transactions = str([transaction.to_json() for transaction in block_last.transactions])
+		transactions = str([transaction.to_json().digest() for transaction in block_last.transactions])
 
 		while not sha256(transactions + str(last_hash) + str(proof))[:difficulty] == '0'*difficulty:
 			proof += 1

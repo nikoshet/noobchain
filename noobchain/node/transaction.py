@@ -12,15 +12,15 @@ from flask import Flask, jsonify, request, render_template
 
 class Transaction:
 
-    def __init__(self, sender_address, sender_private_key, recipient_address, value):
+    def __init__(self, sender_address, receiver_address, amount, signature):
 
-        self.sender_address = sender_address #To public key του wallet από το οποίο προέρχονται τα χρήματα
-        self.receiver_address = 0 #To public key του wallet στο οποίο θα καταλήξουν τα χρήματα
-        self.amount = value #το ποσό που θα μεταφερθεί
-        self.transaction_id = 0 #το hash του transaction
-        self.transaction_inputs = 0 #λίστα από Transaction Input
-        self.transaction_outputs = 0 #λίστα από Transaction Output
-        self.signature = 0
+        self.sender_address = sender_address        # Sender's public key
+        self.receiver_address = receiver_address    # Receiver's public key
+        self.amount = amount                        # Transfer Amount
+        self.transaction_id = 0                     # Transaction Id
+        self.transaction_inputs = 0                 # Previous Transaction Id
+        self.transaction_outputs = 0                # id: (Amount Transferred, Change)
+        self.signature = signature                  # Proof that sender requested transaction
 
     def to_dict(self):
         return True

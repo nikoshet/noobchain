@@ -1,22 +1,17 @@
-
 import time
-import uuid
 
 
 class Block:
-	def __init__(self, index, nonce, previous_hash):
+	def __init__(self, index, transactions, nonce, current_hash=0, previous_hash=0):
 
-		self.index = index
-		self.timestamp = time.time()
-		self.transactions = []
-		self.nonce = uuid.uuid4().hex if nonce != 0 else 0
-		self.previous_hash = previous_hash
-		self.current_hash = 0
+		self.index = index						# Block Identification
+		self.timestamp = time.time()			# Time created
+		self.transactions = transactions		# Block's Transactions
+		self.nonce = nonce						# Proof of work
+		self.current_hash = current_hash		# Current hash
+		self.previous_hash = previous_hash		# Connecting hash to previous block
 
-	def my_hash(self):
-		#calculate self.hash
-		return self.current_hash
+	def __str__(self):
+		return f'\nNode [{self.index}\nAdded: {self.timestamp}\nProof: {self.proof}\nPrevious: {self.previous_hash}\n'
 
-	def add_transaction(self, transaction):
-		#add a transaction to the block
-		return True
+

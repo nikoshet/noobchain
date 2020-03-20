@@ -23,9 +23,10 @@
                                 </div>
                                 <div class="col s6">
                                     <p style="margin-top:1cm;"></p>
-                                    <h5 class="display-5">Hello, {{ session['HOST'] }}!</h5>
-                                    <p class="flow-text">Running port: {{ session['PORT'] }}.</br>
-                                        Minned Blocks: {# {{ user.profile.attending_course }} #}.</p>
+                                    <h5 class="display-5">Hello, node 0 {# {{ node.id }} #}! </h5>
+                                    <p class="flow-text">Your Ip Address: {{ session['HOST'] }} </br>
+                                        Running port: {{ session['PORT'] }}.</br>
+                                        Minned Blocks: {# {{ node.num_mined_blocks }} #}.</p>
                                 </div>
                             </div>
                         </div>

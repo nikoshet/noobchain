@@ -1,13 +1,13 @@
 
-import Blockchain
 import time
 import uuid
+
 
 class Block:
 	def __init__(self, index, nonce, previous_hash):
 
 		self.index = index
-		self.timestamp = time.clock()
+		self.timestamp = time.time()
 		self.transactions = []
 		self.nonce = uuid.uuid4().hex if nonce != 0 else 0
 		self.previous_hash = previous_hash

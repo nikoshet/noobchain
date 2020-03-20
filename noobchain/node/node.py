@@ -1,11 +1,18 @@
-from noobchain.Wallet import Wallet
+from noobchain.node.wallet import Wallet
 from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import SHA
 import re
 import requests
 from flask import jsonify
-from noobchain.Block import Block
-from noobchain.Blockchain import Blockchain
-from noobchain.main import capacity, difficulty
+from noobchain.blockchain.block import Block
+from noobchain.blockchain.blockchain import Blockchain
+#from noobchain.main import capacity, difficulty
+import binascii
+
+capacity = 1
+difficulty = 4
+
 
 class Node:
 
@@ -33,23 +40,13 @@ class Node:
 
         if self.is_bootstrap:
             self.create_genesis_block()
-            #self.start(ip_of_bootstrap, port_of_bootstrap, ip_of_bootstrap, port_of_bootstrap)
-        #else:
-        #    self.start(ip, port, ip_of_bootstrap, port_of_bootstrap, )
 
-        # Search database for user (use conn)
-        #db = []
-        #if id in db:
-        #    self.public = self.get_public(id=id)
-        #    self.private = self.get_private(id=id)
-        #else:
-        #    self.id = id
+        #self.start(ip, port, ip_of_bootstrap, port_of_bootstrap)
+
 
     def __str__(self):
-        return f'------ PRINTING DETAILS FOR USER: [{self.id}] ------' \
-               f'\n{self.name} {self.surname}' \
-               f'\nPublic key:\n{self.public}' \
-               f'\nPrivate key:\n{self.private}'
+        return f'------ PRINTING DETAILS FOR USER: [{self.ip}] ------' \
+               f'\n{self.ip} {self.port}' \
 
     ### General functions ###
 
@@ -75,7 +72,7 @@ class Node:
         # '-----BEGIN RSA PRIVATE KEY-----\n, '\n-----END RSA PRIVATE KEY-----'
         private_key = private_key.exportKey().decode('utf-8')
         private_key = re.sub('(-----BEGIN RSA PRIVATE KEY-----\\n)|(\\n-----END RSA PRIVATE KEY-----)', '', private_key)
-
+        print(private_key, public_key)
         return public_key, private_key
 
     # Create a wallet for this node
@@ -87,7 +84,7 @@ class Node:
     def create_genesis_block(self):
         self.create_new_block(previous_hash=1, nonce=0)
         self.trans = self.create_transaction(0, self.wallet.public_key, 0, self.no_of_nodes * 100)
-        self.add_transaction_to_block(self, self.new_block, self.trans)
+        self.add_transaction_to_block(self.new_block, self.trans)
 
     def register_node_to_ring(self, node_ip, node_port):
         # Add this node to the ring, only the bootstrap node can add a node to the ring after checking his wallet and ip:port address
@@ -120,9 +117,14 @@ class Node:
         trans_input = 0  # previous_output_id
         trans_output = {'id_of_transaction': 1, 'receiver': receiver,
                         'sender': sender, 'value': value, 'signature': signature}
-        my_trans = 0
-        # remember to broadcast it
-        self.broadcast_transaction(my_trans)
+        ###
+        my_trans = 0 #{}..
+        # Sign transaction
+        my_signature = Wallet.sign_transaction(self.wallet, my_trans)
+
+        # Remember to broadcast it
+        message = {} #my_signature + transaction
+        self.broadcast_transaction(message)
         return my_trans
 
     def broadcast_transaction(self, transaction):
@@ -138,12 +140,19 @@ class Node:
 
     def validate_transaction(self, transaction, signature, sender):
         # Use of signature and NBCs balance
-        # if verify_signature and
-        # if utxo ok
-        return True  # else False
+        if self.verify_signature(transaction):
+            #and # if utxo ok
+            return True
+        else:
+            return False
 
-    def verify_signature(self):
-        return True
+    def verify_signature(self, trans):
+        signature = trans.signature
+        pub_key = trans.sender_address
+        #public_key = RSA.importKey(binascii.unhexlify(sender_address))
+        sign = PKCS1_v1_5.new(pub_key)
+        h = SHA.new(str(trans).encode('utf8'))
+        return sign.verify(h, binascii.unhexlify(signature))
 
     ### Block functions ###
 

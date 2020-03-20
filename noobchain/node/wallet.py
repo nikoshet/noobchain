@@ -1,4 +1,8 @@
 
+from Crypto.Hash import SHA
+from Crypto.Signature import PKCS1_v1_5
+import binascii
+
 
 class Wallet:
 
@@ -26,8 +30,13 @@ class Wallet:
     def get_transactions(self):
         return self.transactions
 
-    def sign_transaction(self, private_key, transaction):
-        return 1
+    def sign_transaction(self, transaction):
+        #private_key = RSA.importKey(binascii.unhexlify(self.sender_private_key))
+        private_key = self.private_key
+        sign = PKCS1_v1_5.new(private_key)
+        h = SHA.new(str(transaction)).encode('utf8')
+        #h = SHA.new(str(self.to_dict()).encode('utf8'))
+        return binascii.hexlify(sign.sign(h)).decode('ascii')
 
     # def verify_transaction(self, public_key, transaction):
     #    return 1

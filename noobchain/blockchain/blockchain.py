@@ -1,4 +1,3 @@
-import Block
 
 
 class Blockchain:

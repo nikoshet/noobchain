@@ -75,7 +75,7 @@ blockchain.add_block(block)
 
 print('\nBlockchain example')
 print(blockchain)
-print(f'\nProof of Work for {blockchain.blocks[-1].current_hash.hexdigest()}: {blockchain.proof_of_work(difficulty=1)}\n')
+print(f'\nProof of Work for {blockchain.blocks[-1].current_hash.hexdigest()}: {blockchain.proof_of_work(difficulty=difficulty)}\n')
 print('------------------------------------------------------------------\n')
 
 

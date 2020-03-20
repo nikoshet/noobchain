@@ -24,7 +24,7 @@ class Transaction:
 
     def create_transaction(self, ):
 
-        return 0
+        return self
 
     def sign_transaction(self, private_key):
         self.signature = private_key

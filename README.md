@@ -5,12 +5,15 @@ Project for 'Distributed Systems' M.Sc. Course
 ## Essential Functions
 ### TODO
 
-##### Wallet
+##### Node
 ```
-[x] generate_wallet()
+[o] generate_wallet()
 Δημιουργεί νέο wallet, δλδ ξεύγος public/private key χρησιμοποιώντας τον κρυπτογραφικό αλγόριθμο
 RSA. 
+```
 
+##### Wallet
+```
 [x] wallet_balance()
 Μπορούμενα βρούμε το υπόλοιπο οποιουδήποτε wallet προσθέτοντας όλα τα UTXOs που έχουν
 παραλήπτη το συγκεκριμένο wallet.

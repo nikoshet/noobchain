@@ -1,4 +1,5 @@
 from noobchain.blockchain.block import Block
+from hashlib import sha256
 
 
 class Blockchain:
@@ -15,4 +16,22 @@ class Blockchain:
 
 	def add_block(self, new_block):
 		self.blocks.append(new_block)
-		# add a block to the blockchain
+
+		return self
+
+	def proof_of_work(self, difficulty):
+
+		# grab last block of chain
+		block_last = self.blocks[-1]
+		last_hash = block_last.previous_hash
+		proof = 0
+
+		# Join all transactions in block
+		transactions = str([transaction.to_json() for transaction in block_last.transactions])
+
+		while not sha256(transactions + str(last_hash) + str(proof))[:difficulty] == '0'*difficulty:
+			proof += 1
+
+		return proof
+
+

@@ -7,6 +7,7 @@ import requests
 from flask import jsonify
 from noobchain.blockchain.block import Block
 from noobchain.blockchain.blockchain import Blockchain
+from noobchain.node.transaction import Transaction
 #from noobchain.main import capacity, difficulty
 import binascii
 
@@ -113,19 +114,40 @@ class Node:
 
     ### Transaction functions ###
 
-    def create_transaction(self, sender, receiver, signature, value):
-        trans_input = 0  # previous_output_id
-        trans_output = {'id_of_transaction': 1, 'receiver': receiver,
-                        'sender': sender, 'value': value, 'signature': signature}
-        ###
-        my_trans = 0 #{}..
-        # Sign transaction
-        my_signature = Wallet.sign_transaction(self.wallet, my_trans)
+    #def create_transaction(self, sender, receiver, signature, value):
+    #    trans_input = 0  # previous_output_id
+    #    trans_output = {'id_of_transaction': 1, 'receiver': receiver,
+    #                    'sender': sender, 'value': value, 'signature': signature}
+    #    ###
+    #    my_trans = 0 #{}..
+    #    # Sign transaction
+    #    my_signature = Wallet.sign_transaction(self.wallet, my_trans)
+    #    # Remember to broadcast it
+    #    message = {} #my_signature + transaction
+    #    self.broadcast_transaction(message)
+    #    return my_trans
 
-        # Remember to broadcast it
-        message = {} #my_signature + transaction
-        self.broadcast_transaction(message)
-        return my_trans
+    def create_transaction(self):
+
+        # Dummy variables
+        sender_address = 'sender_public_key'
+        receiver_address = 'receiver_public_key'
+        amount = 5
+        transaction_inputs = 0
+        transaction_outputs = {1: (4, 1)}
+
+        # create new transaction
+        transaction = Transaction(sender_address=sender_address, receiver_address=receiver_address,
+                                  amount=amount, transaction_inputs=transaction_inputs,
+                                  transaction_outputs=transaction_outputs)
+        return transaction
+
+    def sign_transaction(self, sender, transaction):
+
+        # sign given transaction using sender's private key
+        transaction.signature = sender.private
+
+        return transaction
 
     def broadcast_transaction(self, transaction):
         print('Broadcasting transaction')

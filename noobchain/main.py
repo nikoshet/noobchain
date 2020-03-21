@@ -46,8 +46,9 @@ from noobchain.views import layout_views, blockchain_views
 app.register_blueprint(layout_views.blueprint)            # Page Navigation
 app.register_blueprint(blockchain_views.blueprint)        # Functionality
 
-
-print('\n------------------------------------------------------------------')
+print('\n-------------------------------------------------------------------------------------------------------------')
+print(f'Inputs: {HOST}, {PORT}, {boot}, {ip_of_bootstrap}, {port_of_bootstrap}, {capacity}, {difficulty}')
+print('\n-------------------------------------------------------------------------------------------------------------')
 print('Testing\n\n')
 # Dummy variables
 sender_address = 'sender_public_key'
@@ -81,10 +82,9 @@ print(f'\nJson dump:\n{json.dumps(block.od, default=str)}')
 
 blockchain.add_block(block)
 
-print('\nBlockchain example')
-print(blockchain)
-print(f'\nProof of Work for {blockchain.blocks[-1].current_hash}: {blockchain.mine_block(difficulty=2)}\n')
-print('------------------------------------------------------------------\n')
+print(f'\nBlockchain example\n{blockchain}\n')
+blockchain.mine_block(difficulty=2)
+print('-------------------------------------------------------------------------------------------------------------\n')
 
 
 # .......................................................................................
@@ -100,7 +100,7 @@ def start_new_node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nod
 # res.set_cookie('host', HOST)
 # res.set_cookie('port', PORT)
 
-print(f'Inputs: {HOST}, {PORT}, {boot}, {ip_of_bootstrap}, {port_of_bootstrap}, {capacity}, {difficulty}')
+
 # Start node
 #t_node = Thread(target=start_new_node, args=(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes))
 #t_node.start()

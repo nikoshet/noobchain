@@ -47,6 +47,8 @@ class Blockchain:
             prev_hash.update(f'{nonce}{prev_hash.hexdigest()}'.encode('utf-8'))
             nonce += 1
 
+        print(f'Proof of work for {self.blocks[-1].current_hash}: {nonce}.')
+
         # create transaction for miner
         reward_transaction = Transaction(sender_address='MINING', receiver_address=self.public_key, amount=self.reward,
                                          transaction_inputs=1, transaction_outputs={0: (0, 0), 1: (0, 0)})
@@ -58,7 +60,8 @@ class Blockchain:
 
         #copied_transactions.append(reward_transaction)
         block = Block(index=len(self.blocks), previous_hash=self.blocks[-1].current_hash, transactions=[], nonce=nonce)
-        block.hash()
+        # block.hash()
+
         self.blocks.append(block)
 
         return self

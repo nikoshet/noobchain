@@ -6,10 +6,9 @@ import re
 import requests
 from flask import jsonify
 from noobchain.backend.block import Block
-# from noobchain.blockchain.blockchain import Blockchain
+from noobchain.backend.blockchain import Blockchain
 from noobchain.backend.transaction import Transaction
 # from noobchain.main import capacity, difficulty
-from noobchain.main import blockchain
 
 import binascii
 
@@ -36,7 +35,7 @@ class Node:
         bootstrap_address = self.get_address(ip_of_bootstrap, port_of_bootstrap)
         self.ring = [{'id': str.join('id', str(0)), 'public_key': bootstrap_address, 'address': bootstrap_address}]
 
-        self.bkchain = blockchain
+        self.bkchain = Blockchain()
         self.new_block = ''
         self.trans = ''
         # Check if node2 is bootstrap

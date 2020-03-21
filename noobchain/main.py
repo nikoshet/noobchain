@@ -54,28 +54,33 @@ transaction_inputs = 0
 transaction_outputs = {1, (4, 1)}
 
 # create new transaction
-t1 = Transaction(sender_address=sender_address, receiver_address=receiver_address,
-                          amount=amount, transaction_inputs=transaction_inputs,
-                          transaction_outputs=transaction_outputs)
+t1 = Transaction(sender_address=sender_address, receiver_address=receiver_address, amount=amount,
+                 transaction_inputs=transaction_inputs, transaction_outputs=transaction_outputs)
+t1.hash()
 
-t2 = Transaction(sender_address=sender_address, receiver_address=receiver_address,
-                          amount=amount, transaction_inputs=transaction_inputs,
-                          transaction_outputs=transaction_outputs)
 
-print(f'Transactions Example\n{t1.to_od()}')
-print(f'\nHash: {t1.get_hash()}')
+t2 = Transaction(sender_address=sender_address, receiver_address=receiver_address, amount=amount,
+                 transaction_inputs=transaction_inputs, transaction_outputs=transaction_outputs)
+t2.hash()
 
-block = Block(index=0, transactions=[t1, t2], nonce=0, previous_hash=0)
-
-print(f'\nBlock Details example\n{block.to_od()}')
-print(f'\nHash: {block.get_hash().hexdigest()}')
+print(f'Transactions Example\n{t1.od}')
+print(f'\nHash: {t1.current_hash}')
 
 blockchain = Blockchain()
+block = Block(transactions=[t1, t2], nonce=0, previous_hash=0)
+
+# Hash block
+block.hash()
+
+print(f'\nBlock Details example\n{block.od}')
+print(f'\nHash: {block.current_hash}')
+
+
 blockchain.add_block(block)
 
 print('\nBlockchain example')
 print(blockchain)
-print(f'\nProof of Work for {blockchain.blocks[-1].current_hash.hexdigest()}: {blockchain.proof_of_work(difficulty=difficulty)}\n')
+print(f'\nProof of Work for {blockchain.blocks[-1].current_hash}: {blockchain.get_nonce(difficulty=3)}\n')
 print('------------------------------------------------------------------\n')
 
 

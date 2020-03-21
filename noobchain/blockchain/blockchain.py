@@ -9,7 +9,7 @@ class Blockchain:
 		# TODO
 		# transactions in genesis block should contain only 1 transaction
 		# 100*n -> Bootstrap from Wallet (ip=0).
-		self.genesis = Block(index=0, previous_hash=1, transactions=[], nonce=0)
+		self.genesis = Block(previous_hash=1, transactions=[], nonce=0)
 
 		# List of added blocks
 		self.blocks = [self.genesis]
@@ -19,19 +19,19 @@ class Blockchain:
 
 		# ignore genesis
 		for block in self.blocks[1:]:
-			chain += f'{block.index} ({block.current_hash.hexdigest()}) -> '
+			chain += f'-> {block.index} ({block.current_hash})'
 
-		return chain[:-4]
+		return chain
 
 	def add_block(self, new_block):
 		self.blocks.append(new_block)
 
 		return self
 
-	def proof_of_work(self, difficulty):
+	def get_nonce(self, difficulty):
 
 		# grab hash of latest block in the chain
-		prev_hash = self.blocks[-1].get_hash()
+		prev_hash = self.blocks[-1].current_hash_obj
 		proof = 0
 		prev_hash.update(f'{proof}{prev_hash.hexdigest()}'.encode('utf-8'))
 

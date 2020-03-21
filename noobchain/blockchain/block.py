@@ -4,44 +4,37 @@ from hashlib import sha256
 
 
 class Block:
-	def __init__(self, index, transactions, nonce, previous_hash=0):
+    _id = 0  # Incremental id for each instance created
 
-		self.index = index						# Block Identification
-		self.timestamp = time.time()			# Time created
-		self.transactions = transactions		# Block's Transactions
-		self.nonce = nonce						# Proof of work
-		self.current_hash = None				# Current hash
-		self.previous_hash = previous_hash		# Connecting hash to previous block
+    def __init__(self, transactions, nonce, previous_hash=0):
+        self.index = Block._id  # Block Identification
+        self.timestamp = time.time()  # Time created
+        self.transactions = transactions  # Block's Transactions
+        self.nonce = nonce  # Proof of work
+        self.previous_hash = previous_hash  # Connecting hash to previous block
 
-		self.od = None
+        # After successful hashing this should be filled out
+        self.current_hash = None  # Current hash
+        self.current_hash_obj = None  # Current has as sha256 object to save calculations
+        self.od = None
 
-	def to_od(self):
+        Block._id += 1
 
-		if self.od is None:
-			od = OrderedDict([
-				('index', self.index),
-				('timestamp', self.timestamp),
-				# Use hash of each transaction, instead of it's dictionary
-				('transactions', ([trans.get_hash() for trans in self.transactions])),
-				# ('transactions', ([trans.to_od() for trans in self.transactions])),
-				('nonce', self.nonce),
-				('current_hash', self.current_hash),
-			])
+    def hash(self, capacity=2):
+        if len(self.transactions) < capacity:
+            raise Exception(f'Trying to hash a block which has {len(self.transactions)} transactions'
+                            f', while capacity is {capacity}.')
 
-			# store it for future usage
-			self.od = od
+        self.od = OrderedDict([
+            ('index', self.index),
+            ('timestamp', self.timestamp),
+            # Use hash of each transaction, instead of it's dictionary
+            ('transactions', ([trans.current_hash for trans in self.transactions])),
+            ('nonce', self.nonce),
+            ('current_hash', self.current_hash),
+        ])
 
-		return self.od
+        self.current_hash_obj = sha256(str(self.od).encode('utf-8'))
+        self.current_hash = self.current_hash_obj.hexdigest()
 
-	def get_hash(self):
-
-		# If not ordered dict, create one
-		if self.od is None:
-			self.od = self.to_od()
-
-		# Calculate hash only if not available, avoid calculations
-		if self.current_hash is None:
-			#self.current_hash = sha256(str(self.od).encode()).hexdigest()
-			self.current_hash = sha256(str(self.od).encode('utf-8'))
-
-		return self.current_hash
+        return self

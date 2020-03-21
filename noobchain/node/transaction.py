@@ -5,7 +5,7 @@ import json
 
 class Transaction:
 
-    _id = 1     # Incremental id for each instance created
+    _id = 0     # Incremental id for each instance created
 
     def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs):
 
@@ -21,42 +21,23 @@ class Transaction:
 
         Transaction._id += 1
 
-    def to_od(self):
+    def hash(self):
 
-        if self.od is None:
-            # Convert object to ordered dictionary (so it produces same results every time)
-            od = OrderedDict([
-                ('sender_address', self.sender_address),
-                ('receiver_address', self.receiver_address),
-                ('amount', self.amount),
-                ('transaction_id', self.transaction_id),
-                ('transaction_inputs', self.transaction_inputs),
-                ('transaction_outputs', self.transaction_outputs),
-                ('signature', self.signature),
-            ])
+        if len(self.signature) == '':
+            raise Exception(f'Transaction must be signed before attempting any hash')
 
-            self.od = od
+        # Convert object to ordered dictionary (so it produces same results every time)
+        self.od = OrderedDict([
+            ('sender_address', self.sender_address),
+            ('receiver_address', self.receiver_address),
+            ('amount', self.amount),
+            ('transaction_id', self.transaction_id),
+            ('transaction_inputs', self.transaction_inputs),
+            ('transaction_outputs', self.transaction_outputs),
+            ('signature', self.signature),
+        ])
 
-        # Return sha256 of that dictionary
-        # return sha256(json.dumps(_, sort_keys=True).digest())
+        self.current_hash = sha256(str(self.od).encode('utf-8')).hexdigest()
 
-        # Return ordered json
-        # return json.dumps(od, sort_keys=True)
-
-        # store it for future usage
-
-        return self.od
-
-    def get_hash(self):
-
-        # If not ordered dict, create one
-        if self.od is None:
-            self.od = self.to_od()
-
-        # Calculate hash only if not available, avoid calculations
-        if self.current_hash is None:
-            #self.current_hash = sha256(str(self.od).encode()).hexdigest()
-            self.current_hash = sha256(str(self.od).encode('utf-8'))
-
-        return self.current_hash
+        return self
 

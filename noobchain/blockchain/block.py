@@ -6,7 +6,7 @@ from hashlib import sha256
 class Block:
     _id = 0  # Incremental id for each instance created
 
-    def __init__(self, transactions, nonce, previous_hash=0):
+    def __init__(self, transactions, nonce, previous_hash):
         self.index = Block._id  # Block Identification
         self.timestamp = time.time()  # Time created
         self.transactions = transactions  # Block's Transactions
@@ -20,8 +20,8 @@ class Block:
 
         Block._id += 1
 
-    def hash(self, capacity=2):
-        if len(self.transactions) < capacity:
+    def hash(self, capacity=2, genesis=False):
+        if len(self.transactions) < capacity and not genesis:
             raise Exception(f'Trying to hash a block which has {len(self.transactions)} transactions'
                             f', while capacity is {capacity}.')
 

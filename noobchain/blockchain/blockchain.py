@@ -10,6 +10,7 @@ class Blockchain:
 		# transactions in genesis block should contain only 1 transaction
 		# 100*n -> Bootstrap from Wallet (ip=0).
 		self.genesis = Block(previous_hash=1, transactions=[], nonce=0)
+		self.genesis.hash(genesis=True)
 
 		# List of added blocks
 		self.blocks = [self.genesis]
@@ -33,8 +34,11 @@ class Blockchain:
 		# grab hash of latest block in the chain
 		prev_hash = self.blocks[-1].current_hash_obj
 		proof = 0
+
+		# update hash
 		prev_hash.update(f'{proof}{prev_hash.hexdigest()}'.encode('utf-8'))
 
+		# try new hashes until first n characters are 0.
 		while prev_hash.hexdigest()[:difficulty] != '0'*difficulty:
 			prev_hash.update(f'{proof}{prev_hash.hexdigest()}'.encode('utf-8'))
 			proof += 1

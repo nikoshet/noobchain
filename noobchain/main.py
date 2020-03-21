@@ -4,7 +4,8 @@ from argparse import ArgumentParser
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sec_key'
-app.config['TESTING'] = True
+# app.config['TESTING'] = True
+app.config['DEBUG'] = True
 
 #HOST = '127.0.0.1'
 #PORT = 4000
@@ -80,7 +81,7 @@ blockchain.add_block(block)
 
 print('\nBlockchain example')
 print(blockchain)
-print(f'\nProof of Work for {blockchain.blocks[-1].current_hash}: {blockchain.get_nonce(difficulty=3)}\n')
+print(f'\nProof of Work for {blockchain.blocks[-1].current_hash}: {blockchain.get_nonce(difficulty=8)}\n')
 print('------------------------------------------------------------------\n')
 
 

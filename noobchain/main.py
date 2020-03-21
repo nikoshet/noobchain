@@ -4,8 +4,9 @@ from argparse import ArgumentParser
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sec_key'
-# app.config['TESTING'] = True
+app.config['TESTING'] = True
 app.config['DEBUG'] = True
+
 
 #HOST = '127.0.0.1'
 #PORT = 4000
@@ -36,12 +37,11 @@ from threading import Thread
 import time
 import json
 from hashlib import sha256
-from collections import OrderedDict
-from noobchain.node.node import Node
+from noobchain.backend.node import Node
+from noobchain.backend.transaction import Transaction
+from noobchain.backend.block import Block
+from noobchain.backend.blockchain import Blockchain
 from noobchain.views import layout_views, blockchain_views
-from noobchain.node.transaction import Transaction
-from noobchain.blockchain.block import Block
-from noobchain.blockchain.blockchain import Blockchain
 # Register Views
 app.register_blueprint(layout_views.blueprint)            # Page Navigation
 app.register_blueprint(blockchain_views.blueprint)        # Functionality
@@ -70,7 +70,7 @@ print(f'Transactions Example\n{t1.od}')
 print(f'Hash: {t1.current_hash}')
 
 blockchain = Blockchain()
-block = Block(transactions=[t1, t2], nonce=0, previous_hash=0)
+block = Block(index=1, transactions=[t1, t2], nonce=0, previous_hash=0)
 
 # Hash block
 block.hash()
@@ -83,7 +83,7 @@ blockchain.add_block(block)
 
 print('\nBlockchain example')
 print(blockchain)
-print(f'\nProof of Work for {blockchain.blocks[-1].current_hash}: {blockchain.get_nonce(difficulty=2)}\n')
+print(f'\nProof of Work for {blockchain.blocks[-1].current_hash}: {blockchain.mine_block(difficulty=2)}\n')
 print('------------------------------------------------------------------\n')
 
 

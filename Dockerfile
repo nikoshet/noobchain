@@ -19,7 +19,7 @@ RUN pip install -r requirements.txt
 
 COPY . /app
 
-#ENTRYPOINT ["python3","blockchain/rest.py"]
+#ENTRYPOINT ["python3","backend/rest.py"]
 
 CMD python3 blockchain/rest.py
 

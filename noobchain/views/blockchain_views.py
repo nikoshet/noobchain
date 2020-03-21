@@ -1,13 +1,13 @@
 from flask import Flask, jsonify, request, render_template, make_response, session, Blueprint
-from noobchain.main import app
+#from noobchain.main import app
 import json
 from collections import OrderedDict
 
 blueprint = Blueprint('blockchain_views', __name__)
 
 
-# View last transactions in the blockchain
-@app.route('/transactions/view', methods=['GET'])
+# View last transactions in the backend
+@blueprint.route('/transactions/view', methods=['GET'])
 def get_transactions():
     # transactions = Blockchain.transactions
     response = 0  # {'transactions': transactions}
@@ -15,15 +15,15 @@ def get_transactions():
 
 
 # Show balance
-@app.route('/show_balance', methods=['GET'])
+@blueprint.route('/show_balance', methods=['GET'])
 def show_balance():
-    # transactions = blockchain.transactions
+    # transactions = backend.transactions
     response = 0  # {'transactions': transactions}
     return render_template("show_balance.html")
 
 
 # Create a transaction
-@app.route('/transactions/create', methods=['POST'])
+@blueprint.route('/transactions/create', methods=['POST'])
 def create_transaction():
     message = request.get_json()
     response = 0
@@ -31,7 +31,7 @@ def create_transaction():
 
 
 # Broadcast node ring to other nodes
-@app.route('/broadcast/ring', methods=['POST'])
+@blueprint.route('/broadcast/ring', methods=['POST'])
 def broadcast_ring():
     message = request.get_json()
     response = 0
@@ -41,7 +41,7 @@ def broadcast_ring():
 # Broadcast block to other nodes
 #@app.route('/broadcast/block/<int:node_id>', methods=['POST'])
 #def broadcast_block(node_id):
-@app.route('/broadcast/block/', methods=['POST'])
+@blueprint.route('/broadcast/block/', methods=['POST'])
 def broadcast_block():
     '''
     Post to http://127.0.0.1:5000/broadcast/block/ as json, the following
@@ -78,9 +78,8 @@ def broadcast_block():
 
     # Convert back to ordered dictionary
     #data = json.loads(data, object_pairs_hook=OrderedDict)
+
     print(f'Received: {data}')
     response = 0
     return jsonify(response), 200
-
-
 

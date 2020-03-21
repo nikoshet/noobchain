@@ -1,7 +1,5 @@
-from noobchain.blockchain.block import Block
-from hashlib import sha256
-from noobchain.node.transaction import Transaction
-from noobchain.node.wallet import Wallet
+from noobchain.backend.block import Block
+from noobchain.backend.transaction import Transaction
 import json
 import requests
 
@@ -13,7 +11,7 @@ class Blockchain:
         # TODO
         # transactions in genesis block should contain only 1 transaction
         # 100*n -> Bootstrap from Wallet (ip=0).
-        self.genesis = Block(previous_hash=1, transactions=[], nonce=0)
+        self.genesis = Block(index=0, previous_hash=1, transactions=[], nonce=0)
         self.genesis.hash(genesis=True)
 
         self.blocks = [self.genesis]  # List of added blocks

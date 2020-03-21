@@ -34,7 +34,9 @@ difficulty = args.dif
 
 from threading import Thread
 import time
+import json
 from hashlib import sha256
+from collections import OrderedDict
 from noobchain.node.node import Node
 from noobchain.views import layout_views, blockchain_views
 from noobchain.node.transaction import Transaction
@@ -65,7 +67,7 @@ t2 = Transaction(sender_address=sender_address, receiver_address=receiver_addres
 t2.hash()
 
 print(f'Transactions Example\n{t1.od}')
-print(f'\nHash: {t1.current_hash}')
+print(f'Hash: {t1.current_hash}')
 
 blockchain = Blockchain()
 block = Block(transactions=[t1, t2], nonce=0, previous_hash=0)
@@ -74,8 +76,8 @@ block = Block(transactions=[t1, t2], nonce=0, previous_hash=0)
 block.hash()
 
 print(f'\nBlock Details example\n{block.od}')
-print(f'\nHash: {block.current_hash}')
-
+print(f'Hash: {block.current_hash}')
+print(f'\nJson dump:\n{json.dumps(block.od, default=str)}')
 
 blockchain.add_block(block)
 

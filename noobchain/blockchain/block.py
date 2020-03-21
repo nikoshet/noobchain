@@ -4,10 +4,9 @@ from hashlib import sha256
 
 
 class Block:
-    _id = 0  # Incremental id for each instance created
 
-    def __init__(self, transactions, nonce, previous_hash):
-        self.index = Block._id  # Block Identification
+    def __init__(self, index, transactions, nonce, previous_hash):
+        self.index = index  # Block Identification
         self.timestamp = time.time()  # Time created
         self.transactions = transactions  # Block's Transactions
         self.nonce = nonce  # Proof of work
@@ -18,8 +17,6 @@ class Block:
         self.current_hash_obj = None  # Current has as sha256 object to save calculations
         self.od = None
 
-        Block._id += 1
-
     def hash(self, capacity=2, genesis=False):
         if len(self.transactions) < capacity and not genesis:
             raise Exception(f'Trying to hash a block which has {len(self.transactions)} transactions'
@@ -29,7 +26,8 @@ class Block:
             ('index', self.index),
             ('timestamp', self.timestamp),
             # Use hash of each transaction, instead of it's dictionary
-            ('transactions', ([trans.current_hash for trans in self.transactions])),
+            #('transactions', ([trans.current_hash for trans in self.transactions])),
+            ('transactions', ([trans.od for trans in self.transactions])),
             ('nonce', self.nonce),
             ('current_hash', self.current_hash),
         ])

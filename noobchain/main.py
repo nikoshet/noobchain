@@ -81,7 +81,7 @@ blockchain.add_block(block)
 
 print('\nBlockchain example')
 print(blockchain)
-print(f'\nProof of Work for {blockchain.blocks[-1].current_hash}: {blockchain.get_nonce(difficulty=8)}\n')
+print(f'\nProof of Work for {blockchain.blocks[-1].current_hash}: {blockchain.get_nonce(difficulty=2)}\n')
 print('------------------------------------------------------------------\n')
 
 

@@ -17,19 +17,17 @@ class Blockchain:
                                   transaction_inputs='', transaction_outputs='', genesis=True)
 
         self.genesis.transactions.append(transaction)
-
-        #self.genesis.hash(genesis=True)
-        self.genesis.current_hash = self.genesis.hash(genesis=True)
+        self.genesis.hash(genesis=True)
 
         self.blocks = []  # List of added blocks
         self.add_block(self.genesis)
 
-        self.reward = 10  # Reward for mining
         self.public_key = 'a_public_key'
 
+        self.resolve_conflict = False  # Check chain updates (bigger was found)
 
     def __str__(self):
-        chain = f'{self.genesis.index} ({0})'
+        chain = f'{self.genesis.index} ({0}) '
 
         # ignore genesis
         for block in self.blocks[1:]:
@@ -56,11 +54,6 @@ class Blockchain:
             prev_hash.update(f'{nonce}{prev_hash.hexdigest()}'.encode('utf-8'))
             nonce += 1
 
-        # create transaction for miner
-        reward_transaction = Transaction(sender_address='MINING', receiver_address=self.public_key, amount=self.reward,
-                                         transaction_inputs=1, transaction_outputs={0: (0, 0), 1: (0, 0)})
-        reward_transaction.signature = 'MINING'
-
         # TODO
         # Fix code below for open transactions (if capacity > 1?!?!)
         #copied_transactions = self.__open_transactions[:]
@@ -70,10 +63,10 @@ class Blockchain:
 
         #copied_transactions.append(reward_transaction)
         block = Block(index=len(self.blocks), previous_hash=self.blocks[-1].current_hash,
-                      transactions=[reward_transaction], nonce=nonce)
+                      transactions=[], nonce=nonce)
         block.hash()
 
-        print(f'\nBlock to broadcast: {block.to_od()}')
+        print(f'\nBlock to broadcast: {block.to_json()}')
         self.blocks.append(block)
         # Actually post it at http://{address}/broadcast/block
         # self.broadcast_block(block)
@@ -90,3 +83,39 @@ class Blockchain:
                 self.resolve_conflicts = True
 
         return self
+
+    def resolve(self):
+
+        for member in self.ring:
+            # Request chain from nodes
+            new_blocks = requests.get(f'http://{member.get("address")}/chain').json()
+
+            # Build it using json
+            new_blocks = [Block(block['index'], block['timestamp'], block['nonce'],
+                                [Transaction(t['sender_address'], t['receiver_address'], t['amount'], t['transaction_id'],
+                                             t['transaction_inputs'], t['transaction_outputs'], t['signature'])
+                                 for t in block['transactions']])
+                          for block in new_blocks]
+
+            print(f'\nCollected chain {new_blocks}\n')
+            # If bigger is to be found, replace existing chain
+            if len(new_blocks) > len(self.blocks) and self.verify_blocks(new_blocks):
+                self.blocks = new_blocks
+
+        self.resolve_conflict = False
+
+        return self
+
+
+# ---------------------------------------------- VERIFICATION FUNCTIONS ----------------------------------------------
+
+    def verify_blocks(self, blockchain):
+
+        # Loop chain to validate that hashes are connected
+        for (index, block) in enumerate(blockchain):
+            if index == 0:
+                continue
+            if block.previous_hash != blockchain[index - 1].current_hash:
+                return False
+
+        return True

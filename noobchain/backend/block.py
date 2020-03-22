@@ -1,6 +1,7 @@
 import time
 from collections import OrderedDict
 from hashlib import sha256
+import json
 
 
 class Block:
@@ -27,9 +28,10 @@ class Block:
         return od
 
     def hash(self, capacity=1, genesis=False):
-        if len(self.transactions) < capacity and not genesis:
-            raise Exception(f'Trying to hash a block which has {len(self.transactions)} transactions'
-                            f', while capacity is {capacity}.')
+        #if len(self.transactions) < capacity and not genesis:
+        #    raise Exception(f'Trying to hash a block which has {len(self.transactions)} transactions'
+        #                    f', while capacity is {capacity}.')
+
         od = OrderedDict([
             ('index', self.index),
             ('timestamp', self.timestamp),

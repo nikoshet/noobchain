@@ -1,5 +1,5 @@
 # Import libraries
-from flask import Flask
+from flask import Flask, jsonify
 from argparse import ArgumentParser
 from threading import Thread
 import time
@@ -27,7 +27,7 @@ parser = ArgumentParser()
 parser.add_argument('-ip', default='127.0.0.1', type=str, help='ip of node')
 parser.add_argument('-p', '--port', default=1000, type=int, help='port to listen on')
 parser.add_argument('-bootstrap', default=True, type=bool, help='is node bootstrap?')
-parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
+parser.add_argument('-ip_bootstrap', default='127.0.0.1', type=str, help='ip of bootstrap')
 parser.add_argument('-port_bootstrap', default=1000, type=int, help='port of bootstrap')
 parser.add_argument('-nodes', default=5, type=int, help='number of nodes')
 parser.add_argument('-cap', default=1, type=int, help='capacity of blocks')
@@ -48,6 +48,15 @@ print('\n-----------------------------------------------------------------------
 print(f'Inputs: {HOST}, {PORT}, {boot}, {ip_of_bootstrap}, {port_of_bootstrap}, {capacity}, {difficulty}')
 print('\n-------------------------------------------------------------------------------------------------------------')
 print('Testing\n')
+
+
+# Get current node's version of chain
+@app.route('/receive/chain', methods=['GET'])
+def get_chain():
+    blockchain_json = [block.to_json() for block in blockchain.blocks]
+
+    return jsonify(blockchain_json), 200
+
 
 # Create bootstrap node
 bootstrap = Node(ip=HOST, port=PORT, is_bootstrap=True, ip_of_bootstrap=ip_of_bootstrap,
@@ -73,7 +82,7 @@ t2 = Transaction(sender_address=sender_address, receiver_address=receiver_addres
                  transaction_inputs=transaction_inputs, transaction_outputs=transaction_outputs)
 t2.signature = 'dummy2'
 
-print(f'Transactions Example\n{t1.to_od()}')
+print(f'Transactions Example\n{t1.to_json()}')
 
 blockchain = Blockchain(bootstrap.ring)
 block = Block(index=1, transactions=[t1, t2], nonce=0, previous_hash=0)
@@ -81,9 +90,8 @@ block = Block(index=1, transactions=[t1, t2], nonce=0, previous_hash=0)
 # Hash block
 block.hash()
 
-print(f'\nBlock Details example\n{block.to_od()}')
+print(f'\nBlock Details example\n{block.to_json()}')
 print(f'Hash: {block.current_hash}')
-print(f'\nJson dump:\n{json.dumps(block.to_od(), default=str)}')
 
 blockchain.add_block(block)
 
@@ -98,6 +106,9 @@ print('-------------------------------------------------------------------------
 def start_new_node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes):
     print("New node")
     new_node = Node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes)
+
+
+
 
 
 # Save HOST, PORT as cookies

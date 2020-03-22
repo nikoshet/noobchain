@@ -1,8 +1,30 @@
 # Noobchain (Fullstack Flask App)
 
-Project for 'Distributed Systems' M.Sc. Course
+Blockchain Project for 'Distributed Systems' M.Sc. Course 2019-2020.
 
-## Essential Functions
+## Routing Table
+
+##### Backend
+| URL                  | Type | Action  |
+|:--------------------:|:----:|:-------:|
+| /transactions/view   | GET  |         |
+| /show_balance        | GET  |         |
+| /transactions/create | POST |         |
+| /broadcast/ring      | POST |         |
+| broadcast/block      | POST |         |
+| /nodes/register      | POST |         |
+| /receive/chain       | GET  | Current version of Node's chain|
+
+##### Frontend
+| URL      | Type| Action                     |
+|:--------:|:---:|:--------------------------:|
+| /        | GET | Home Page                  |
+| /profile | GET | Node's Profile             |
+| /contact | GET | Contact                    |
+| /faq     | GET | Frequently Asked Questions |
+| /about   | GET | About                      |
+| /help    | GET | User Manual                |
+
 ### TODO
 
 ##### Node
@@ -87,22 +109,7 @@ Dimitris Lambrakis [()](https://github.com) - ΕΔΕΜΜ.
 ```
 pip install -r requirements.txt
 ```
-
-##### Windows
-```
-set FLASK_APP=main.py
-```
-
-##### Linux
-```
-export FLASK_APP=main.py
-```
-
 ##### Run Server
-```
-flask run
-```
-With arguments:
 ```
 python3 main.py -ip IP -port PORT -bootstrap TRUE -ip_boostrap IP_OF_BOOTSTRAP -port_bootstrap PORT_OF_BOOTSTRAP -nodes NO_OF_NODES -cap CAPACITY -dif DIFFICULTY
 ```
@@ -113,6 +120,7 @@ python3 main.py -ip IP -port PORT -bootstrap TRUE -ip_boostrap IP_OF_BOOTSTRAP -
 
 css used is under the MIT License and can be found here: [darkly](https://bootswatch.com/darkly/)
 
-Nick Nikitas, Dimitris Zografakis, Dimitris Lambrakis
+Nick Nikitas, Dimitris Zografakis, Dimitris Lambrakis.
+
 Copyright © 2020
 

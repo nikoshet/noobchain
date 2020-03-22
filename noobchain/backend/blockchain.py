@@ -10,17 +10,20 @@ class Blockchain:
         self.ring = ring  # List of ring nodes
 
         # Genesis block
+        self.genesis = Block(index=0, previous_hash=1, transactions=[], nonce=0)
+
+        # Genesis transaction
         transaction = Transaction(sender_address=0, receiver_address=self.ring[0]['public_key'], amount=500,
                                   transaction_inputs='', transaction_outputs='', genesis=True)
 
-        self.genesis = Block(index=0, previous_hash=1, transactions=[transaction], nonce=0)
-        self.genesis.hash(genesis=True)
+        self.genesis.transactions.append(transaction)
 
-        self.blocks = [self.genesis]  # List of added blocks
+        #self.genesis.hash(genesis=True)
+        self.genesis.current_hash = self.genesis.hash(genesis=True)
 
-        self.genesis.hash(genesis=True)
+        self.blocks = []  # List of added blocks
+        self.add_block(self.genesis)
 
-        self.blocks = [self.genesis]  # List of added blocks
         self.reward = 10  # Reward for mining
         self.public_key = 'a_public_key'
 

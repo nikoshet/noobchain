@@ -1,3 +1,4 @@
+import json
 from collections import OrderedDict
 
 
@@ -6,7 +7,7 @@ class Transaction:
     _id = 0     # Incremental id for each instance created
 
     #def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs):
-    def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs,genesis=False):
+    def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs, genesis=False):
 
         self.sender_address = sender_address                    # Sender's public key
         self.receiver_address = receiver_address                # Receiver's public key
@@ -22,7 +23,6 @@ class Transaction:
         Transaction._id += 1
 
     def to_od(self):
-
         # Convert object to ordered dictionary (so it produces same results every time)
         od = OrderedDict([
             ('sender_address', self.sender_address),
@@ -36,3 +36,6 @@ class Transaction:
 
         return od
 
+    def to_json(self):
+        # Convert object to json
+        return json.dumps(self.to_od())

@@ -1,15 +1,16 @@
-from noobchain.backend.wallet import Wallet
+from threading import Thread
+import json
+from backend.wallet import Wallet
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA
 import re
 import requests
 from flask import jsonify
-from noobchain.backend.block import Block
-# from noobchain.blockchain.blockchain import Blockchain
-from noobchain.backend.transaction import Transaction
+from backend.block import Block
+from backend.blockchain import Blockchain
+from backend.transaction import Transaction
 # from noobchain.main import capacity, difficulty
-from noobchain.main import blockchain
 
 import binascii
 
@@ -34,20 +35,20 @@ class Node:
 
         # Here we store information for every node, as its id, its address (ip:port) its public key and its balance
         bootstrap_address = self.get_address(ip_of_bootstrap, port_of_bootstrap)
-        self.ring = [{'id': str.join('id', str(0)), 'public_key': bootstrap_address, 'address': bootstrap_address}]
+        self.ring = [{'id': str.join('id', str(0)), 'public_key': self.wallet.public_key, 'address': bootstrap_address}]
 
-        self.bkchain = blockchain
+        self.bkchain = Blockchain()
         self.new_block = ''
         self.trans = ''
         # Check if node2 is bootstrap
         self.is_bootstrap = is_bootstrap
-
         if self.is_bootstrap:
             self.id = 'id0'
-            self.create_genesis_block()
+            #self.create_genesis_block()
 
         else:
-            self.register_on_bootstrap()
+            Thread(target=self.register_on_bootstrap).start()
+            #self.register_on_bootstrap()
 
         # self.start(ip, port, ip_of_bootstrap, port_of_bootstrap)
 
@@ -59,6 +60,7 @@ class Node:
 
     def register_on_bootstrap(self):
         message = {'public_key': self.wallet.public_key, 'address': self.address}
+        print('Resource:',self.ring[0]['address'] + "/nodes/register")
         req = requests.post(self.ring[0]['address'] + "/nodes/register", json=message)
         if not req.status_code == 200:
             print(req.text)
@@ -73,21 +75,17 @@ class Node:
     def first_time_keys(self):
         # https://pycryptodome.readthedocs.io/en/latest/src/public_key/rsa.html#Crypto.PublicKey.RSA.generate
         # Generate random RSA object
-        private_key = RSA.generate(2048)
-        public_key = private_key.publickey()
-
+        gen = RSA.generate(2048)
+        private_key = gen.exportKey('PEM').decode()
+        public_key = gen.publickey().exportKey('PEM').decode()
         # exportKey, format param: "PEM" -> string
-        #                          "DER" -> binary
 
         # Remove conventions
         # '-----BEGIN PUBLIC KEY-----\n', '\n-----END PUBLIC KEY-----'
-        public_key = public_key.exportKey().decode('utf-8')
-        public_key = re.sub('(-----BEGIN PUBLIC KEY-----\\n)|(\\n-----END PUBLIC KEY-----)', '', public_key)
-
+        public_key = re.sub('(-----BEGIN RSA PUBLIC KEY-----\\n)|(\\n-----END RSA PUBLIC KEY-----)', '', public_key)
         # '-----BEGIN RSA PRIVATE KEY-----\n, '\n-----END RSA PRIVATE KEY-----'
-        private_key = private_key.exportKey().decode('utf-8')
         private_key = re.sub('(-----BEGIN RSA PRIVATE KEY-----\\n)|(\\n-----END RSA PRIVATE KEY-----)', '', private_key)
-        #print(private_key, public_key)
+
         return public_key, private_key
 
     # Create a wallet for this node2
@@ -112,20 +110,21 @@ class Node:
     def register_node_to_ring(self, message):
         # Add the new node to ring
         # Bootstrap node informs all other nodes and gives the new node an id and 100 NBCs
-        node_ip = message.ip
-        node_port = message.port
-        public_key = message.public_key
-        address = self.get_address(node_ip, node_port)
-        self.ring.append({'id': str.join('id', str(len(self.ring))), 'public_key': public_key, 'address': address})
+        node_address = message.get('address')
+        public_key = message.get('public_key')
+        self.ring.append({'id': str.join('id', str(len(self.ring))), 'public_key': public_key, 'address': node_address})
 
-        print(self.ring)
+        #print(self.ring)
 
         # Broadcast ring to all nodes
-        if len(self.ring == self.no_of_nodes):
-            self.broadcast_ring_to_nodes()
+        if len(self.ring) == self.no_of_nodes:
+            print("AXAXAXAXAXAX")
+            Thread(target=self.broadcast_ring_to_nodes).start()
+            #self.broadcast_ring_to_nodes()
             # Answer to node
             # self.respond_to_node(address, public_key)
-            self.respond_to_node()
+            Thread(target=self.respond_to_node).start()
+            #self.respond_to_node()
 
     def respond_to_node(self):
         value = 100
@@ -145,12 +144,12 @@ class Node:
         for member in self.ring:
             address = member.get('address')
             if address != self.address:
-                requests.post(address + "/broadcast/ring", data=jsonify(self.ring))
+                requests.post(address + "/broadcast/ring", data=json.dumps(self.ring))
 
     ### Transaction functions ###
 
     def create_transaction(self, sender_address, receiver_address, value):
-        last_block = ''  # Blockchain.blocks[-1]
+        last_block = self.new_block#''  # Blockchain.blocks[-1]
         last_trans_output, last_trans_id = last_block.transactions[-1]['transaction_inputs', 'transaction_id']
         trans_input = last_trans_output  # previous_output_id
         UTXOs = self.wallet.value - value
@@ -226,18 +225,6 @@ class Node:
             self.new_block.transactions.append(transaction)
         # return True
 
-    def mine_block(self, blk):
-        return True
-
-    def broadcast_block(self, new_block):
-        message = new_block  # {}
-        for member in self.ring:
-            address = member.get('address')
-            if address != self.address:
-                print(address, 'aaa')
-                # request POST block to member
-                requests.post(address + "/broadcast/block", data=message)
-                # return True
 
     def valid_proof(self):
         MINING_DIFFICULTY = difficulty

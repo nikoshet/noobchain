@@ -19,7 +19,8 @@ RUN pip install -r requirements.txt
 
 COPY . /app
 
-#ENTRYPOINT ["python3","backend/rest.py"]
+#ENTRYPOINT ["python3","noobchain/rest.py"]
 
-CMD python3 blockchain/rest.py
+#CMD python3 noobchain/main.py
 
+CMD python3 noobchain/main.py 0.0.0.0 1000 TRUE 0.0.0.0 1000 3 5 2

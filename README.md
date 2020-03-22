@@ -47,7 +47,7 @@ Eπαληθεύεται η ορθότητα του transaction που έχει �
 hashάροντας το block μέχρι το hash που θα προκύψει να αρχίζει από έναν συγκεκριμένο αριθμό από
 μηδενικά. Ο αριθμός αυτός καθορίζεται από τη σταθερά difficulty.
 
-[x] broadcast_block()
+[o] broadcast_block()
 Μόλις βρεθεί ο κατάλληλος nonce, ο κόμβος κάνει broadcast το επαληθευμένο block σε όλους τους
 υπόλοιπους κόμβους.
 
@@ -104,7 +104,7 @@ flask run
 ```
 With arguments:
 ```
-flask run -ip IP -port PORT -bootstrap TRUE -ip_boostrap IP_OF_BOOTSTRAP -port_bootstrap PORT_OF_BOOTSTRAP -nodes NO_OF_NODES -cap CAPACITY -dif DIFFICULTY
+python3 main.py -ip IP -port PORT -bootstrap TRUE -ip_boostrap IP_OF_BOOTSTRAP -port_bootstrap PORT_OF_BOOTSTRAP -nodes NO_OF_NODES -cap CAPACITY -dif DIFFICULTY
 ```
 
 ### Specs

@@ -83,3 +83,20 @@ def broadcast_block():
     response = 0
     return jsonify(response), 200
 
+import sys, os
+#sys.path.insert(1, os.path.join(sys.path[0], '..'))
+sys.path.insert(0,'..')
+#print(sys.path.insert(1, os.path.join(sys.path[0], '..')))
+#from backend.node import Node
+#from main import new_node
+#from __main__ import *
+#from __main__ import new_node
+import main
+# Register node to bootstrap ring
+@blueprint.route('/nodes/register', methods=['POST'])
+def register_node():
+    message = request.get_json()
+    print(message)
+    main.new_node.register_node_to_ring(message)
+    response = 'success'
+    return jsonify(response), 200

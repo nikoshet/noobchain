@@ -5,7 +5,12 @@ class Transaction:
 
     _id = 0     # Incremental id for each instance created
 
+<<<<<<< HEAD
     def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs, genesis=False):
+=======
+    #def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs):
+    def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs,genesis=False):
+>>>>>>> master
 
         self.sender_address = sender_address                    # Sender's public key
         self.receiver_address = receiver_address                # Receiver's public key

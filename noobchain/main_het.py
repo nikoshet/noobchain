@@ -68,8 +68,12 @@ def show_balance():
 # Create a transaction
 @app.route('/transactions/create', methods=['POST'])
 def create_transaction():
-    message = request.get_json()
-    response = 0
+    message = json.loads(request.get_json())
+    transaction = json.loads(message.get('transaction'))
+    signature = transaction.get('signature')
+    sender = transaction.get('sender_address')
+    new_node.validate_transaction(transaction, signature, sender)
+    response = 'success'
     return jsonify(response), 200
 
 
@@ -77,7 +81,7 @@ def create_transaction():
 @app.route('/broadcast/ring', methods=['POST'])
 def broadcast_ring():
     message = request.get_json()
-    print(message)
+    #print(message)
     new_node.ring = json.loads(message)
     response = 'success'
     return jsonify(response), 200

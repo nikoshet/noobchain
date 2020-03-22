@@ -1,3 +1,4 @@
+import time
 from threading import Thread
 import json
 from backend.wallet import Wallet
@@ -37,13 +38,14 @@ class Node:
         bootstrap_address = self.get_address(ip_of_bootstrap, port_of_bootstrap)
         self.ring = [{'id': str.join('id', str(0)), 'public_key': self.wallet.public_key, 'address': bootstrap_address}]
 
-        self.bkchain = Blockchain()
-        self.new_block = ''
+        self.bkchain = None
+        self.new_block = None
         self.trans = ''
         # Check if node2 is bootstrap
         self.is_bootstrap = is_bootstrap
         if self.is_bootstrap:
             self.id = 'id0'
+            self.bkchain = Blockchain(self.ring)
             #self.create_genesis_block()
 
         else:
@@ -59,6 +61,7 @@ class Node:
     ### General functions ###
 
     def register_on_bootstrap(self):
+        time.sleep(2)
         message = {'public_key': self.wallet.public_key, 'address': self.address}
         print('Resource:',self.ring[0]['address'] + "/nodes/register")
         req = requests.post(self.ring[0]['address'] + "/nodes/register", json=message)
@@ -82,9 +85,9 @@ class Node:
 
         # Remove conventions
         # '-----BEGIN PUBLIC KEY-----\n', '\n-----END PUBLIC KEY-----'
-        public_key = re.sub('(-----BEGIN RSA PUBLIC KEY-----\\n)|(\\n-----END RSA PUBLIC KEY-----)', '', public_key)
+        #public_key = re.sub('(-----BEGIN RSA PUBLIC KEY-----\\n)|(\\n-----END RSA PUBLIC KEY-----)', '', public_key)
         # '-----BEGIN RSA PRIVATE KEY-----\n, '\n-----END RSA PRIVATE KEY-----'
-        private_key = re.sub('(-----BEGIN RSA PRIVATE KEY-----\\n)|(\\n-----END RSA PRIVATE KEY-----)', '', private_key)
+        #private_key = re.sub('(-----BEGIN RSA PRIVATE KEY-----\\n)|(\\n-----END RSA PRIVATE KEY-----)', '', private_key)
 
         return public_key, private_key
 
@@ -103,9 +106,8 @@ class Node:
                                  transaction_outputs='')
 
         self.add_transaction_to_block(self.new_block, self.trans)
-
         # Mine block
-        self.mine_block(self.new_block)
+        self.bkchain.mine_block(self.new_block)
 
     def register_node_to_ring(self, message):
         # Add the new node to ring
@@ -144,13 +146,19 @@ class Node:
         for member in self.ring:
             address = member.get('address')
             if address != self.address:
-                requests.post(address + "/broadcast/ring", data=json.dumps(self.ring))
+                req = requests.post(address + "/broadcast/ring", json=json.dumps(self.ring))
+                if not req.status_code == 200:
+                    #print(req.text)
+                    print('Error:',req.status_code)
+                else:
+                    print('Successful registration on bootstrap node from node:', address)
 
     ### Transaction functions ###
 
     def create_transaction(self, sender_address, receiver_address, value):
-        last_block = self.new_block#''  # Blockchain.blocks[-1]
-        last_trans_output, last_trans_id = last_block.transactions[-1]['transaction_inputs', 'transaction_id']
+        last_block = self.bkchain.blocks[-1] #self.new_block
+        last_trans_output = last_block.transactions[-1].transaction_inputs
+        last_trans_id = last_block.transactions[-1].transaction_id
         trans_input = last_trans_output  # previous_output_id
         UTXOs = self.wallet.value - value
         trans_output = {last_trans_id: (sender_address, receiver_address, value, UTXOs)}
@@ -162,23 +170,10 @@ class Node:
         # Sign transaction
         my_trans.signature = Wallet.sign_transaction(self.wallet, my_trans)
         # Remember to broadcast it
-        message = {'transaction': my_trans}
-        print(message)
+        message = {'transaction': my_trans.to_json()}
+        #print(message)
         self.broadcast_transaction(message)
         return my_trans
-
-    # def create_transaction(self):
-    #    # Dummy variables
-    #    sender_address = 'sender_public_key'
-    #    receiver_address = 'receiver_public_key'
-    #    amount = 5
-    #    transaction_inputs = 0
-    #    transaction_outputs = {1: (4, 1)}
-    #    # create new transaction
-    #    transaction = Transaction(sender_address=sender_address, receiver_address=receiver_address,
-    #                              amount=amount, transaction_inputs=transaction_inputs,
-    #                              transaction_outputs=transaction_outputs)
-    #    return transaction
 
     def broadcast_transaction(self, message):
         print('Broadcasting transaction')
@@ -188,23 +183,32 @@ class Node:
             if address != self.address:
                 # Post request
                 # send to ring.sender
-                requests.post(address + "/transactions/create", data=jsonify(message))
+                req = requests.post(address + "/transactions/create", json=json.dumps(message))# data=jsonify(message))
+                if not req.status_code == 200:
+                    #print(req.text)
+                    print('Error:',req.status_code)
+                else:
+                    print('Success on broadcasting transaction on node:', address)
 
     def validate_transaction(self, transaction, signature, sender):
         # Use of signature and NBCs balance
-        if self.verify_signature(transaction):
+        if self.verify_signature(transaction, signature, sender):
             # and # if utxo ok
             return True
         else:
+            print('Error on validating')
             return False
 
-    def verify_signature(self, trans):
-        signature = trans.signature
-        pub_key = trans.sender_address
-        # public_key = RSA.importKey(binascii.unhexlify(sender_address))
+    def verify_signature(self, trans, signature, pub_key):
+        #pub_key = RSA.importKey(binascii.unhexlify(trans.sender_address))
         sign = PKCS1_v1_5.new(pub_key)
-        h = SHA.new(str(trans).encode('utf8'))
+        print(trans)
+        h = SHA.new(Transaction.to_json(Transaction.to_od(trans)).encode('utf8'))
         return sign.verify(h, binascii.unhexlify(signature))
+
+
+        #return base64.b64encode(my_sign.sign(h)).decode('utf8')
+
 
     ### Block functions ###
 
@@ -212,14 +216,15 @@ class Node:
         new_block_index = len(self.bkchain.blocks)
         self.new_block = Block(new_block_index, [], nonce, previous_hash)
         # return True
+        self.bkchain.append(self.new_block)
 
     def add_transaction_to_block(self, block, transaction):
         # if transaction is for genesis block
         if len(self.bkchain.blocks) == 0:
-            self.mine_block(block)
+            self.bkchain.mine_block(block)
         # if enough transactions mine
         if len(self.new_block.transactions) == capacity:
-            self.mine_block(block)
+            self.bkchain.mine_block(block)
         # append transaction to block
         else:
             self.new_block.transactions.append(transaction)

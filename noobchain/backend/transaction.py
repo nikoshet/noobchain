@@ -38,4 +38,5 @@ class Transaction:
 
     def to_json(self):
         # Convert object to json
-        return json.dumps(self.to_od())
+        return json.dumps(self.to_od(), default=str)
+    

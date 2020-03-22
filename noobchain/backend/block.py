@@ -21,9 +21,8 @@ class Block:
         od = OrderedDict([
             ('index', self.index),
             ('timestamp', self.timestamp),
-            ('transactions', ([trans.od for trans in self.transactions])),
-            ('nonce', self.nonce),
-            ('current_hash', self.current_hash),
+            ('transactions', ([trans.to_od() for trans in self.transactions])),
+            ('nonce', self.nonce)
         ])
         return od
 
@@ -37,7 +36,12 @@ class Block:
             ('transactions', ([trans.to_od() for trans in self.transactions])),
             ('nonce', self.nonce)
         ])
+
         self.current_hash_obj = sha256(str(od).encode('utf-8'))
         self.current_hash = self.current_hash_obj.hexdigest()
 
         return self
+
+    def to_json(self):
+        # Convert object to json
+        return json.dumps(self.to_od(), default=str)

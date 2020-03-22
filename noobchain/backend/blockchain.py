@@ -82,7 +82,7 @@ class Blockchain:
     def broadcast_block(self, block):
         for member in self.ring:
             url = f'{member.get("address")}/broadcast/block/'
-            response = requests.post(url, json=json.dumps(block.to_od(), default=str))
+            response = requests.post(url, block.to_json())
             if response.status_code == 400 or response.status_code == 500:
                 print('Block declined, needs resolving')
 

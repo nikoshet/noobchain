@@ -1,13 +1,11 @@
 from collections import OrderedDict
-from hashlib import sha256
-import json
 
 
 class Transaction:
 
     _id = 0     # Incremental id for each instance created
 
-    def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs):
+    def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs, genesis=False):
 
         self.sender_address = sender_address                    # Sender's public key
         self.receiver_address = receiver_address                # Receiver's public key
@@ -16,18 +14,16 @@ class Transaction:
         self.transaction_inputs = transaction_inputs            # Previous Transaction Id
         self.transaction_outputs = transaction_outputs          # {id: (Amount Transferred, Change)}
         self.signature = ''                                     # Proof that sender requested transaction
-        self.od = None
-        self.current_hash = None
+
+        if genesis:
+            self.signature = 'GENESIS'
 
         Transaction._id += 1
 
-    def hash(self):
-
-        if len(self.signature) == '':
-            raise Exception(f'Transaction must be signed before attempting any hash')
+    def to_od(self):
 
         # Convert object to ordered dictionary (so it produces same results every time)
-        self.od = OrderedDict([
+        od = OrderedDict([
             ('sender_address', self.sender_address),
             ('receiver_address', self.receiver_address),
             ('amount', self.amount),
@@ -37,7 +33,5 @@ class Transaction:
             ('signature', self.signature),
         ])
 
-        self.current_hash = sha256(str(self.od).encode('utf-8')).hexdigest()
-
-        return self
+        return od
 

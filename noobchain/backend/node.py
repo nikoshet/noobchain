@@ -35,7 +35,7 @@ class Node:
         bootstrap_address = self.get_address(ip_of_bootstrap, port_of_bootstrap)
         self.ring = [{'id': str.join('id', str(0)), 'public_key': bootstrap_address, 'address': bootstrap_address}]
 
-        self.bkchain = Blockchain()
+        # self.bkchain = Blockchain()
         self.new_block = ''
         self.trans = ''
         # Check if node2 is bootstrap
@@ -43,7 +43,7 @@ class Node:
 
         if self.is_bootstrap:
             self.id = 'id0'
-            self.create_genesis_block()
+            #self.create_genesis_block()
 
         else:
             self.register_on_bootstrap()

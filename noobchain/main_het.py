@@ -90,7 +90,7 @@ def broadcast_ring():
 # Broadcast block to other nodes
 #@app.route('/broadcast/block/<int:node_id>', methods=['POST'])
 #def broadcast_block(node_id):
-@app.route('/broadcast/block/', methods=['POST'])
+@app.route('/broadcast/block', methods=['POST'])
 def broadcast_block():
     '''
     Post to http://127.0.0.1:5000/broadcast/block/ as json, the following

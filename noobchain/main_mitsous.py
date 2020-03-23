@@ -34,6 +34,7 @@ if args.bootstrap == 'True':
     boot = True
 else:
     boot = False
+print(boot)
 ip_of_bootstrap = args.ip_bootstrap
 port_of_bootstrap = args.port_bootstrap
 no_of_nodes = args.nodes

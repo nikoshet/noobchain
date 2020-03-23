@@ -12,6 +12,8 @@ from flask import jsonify
 from backend.block import Block
 from backend.blockchain import Blockchain
 from backend.transaction import Transaction
+from collections import OrderedDict
+
 # from noobchain.main import capacity, difficulty
 
 import binascii
@@ -47,7 +49,7 @@ class Node:
         if self.is_bootstrap:
             self.id = 'id0'
             self.wallet.utxos[0]=500
-            print(self.wallet.utxos)
+            #print(self.wallet.utxos)
             self.bkchain = Blockchain(self.ring)
             #self.create_genesis_block()
 
@@ -156,7 +158,7 @@ class Node:
         for key, available in self.wallet.utxos.items():
             if tmp<value:
                 trans_input.append(key)
-                tmp+=value   
+                tmp+=value
         # create new transaction
         my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address,amount=value, transaction_inputs=trans_input,wallet=self.wallet,id=self.id)
         # Sign transaction
@@ -194,7 +196,9 @@ class Node:
     def verify_signature(self, trans, signature, pub_key):
         #pub_key = RSA.importKey(binascii.unhexlify(trans.sender_address))
         sign = PKCS1_v1_5.new(pub_key)
-        print(trans)
+        to_test={"sender_adress":trans["sender_adress"], "receiver_address":trans["receiver_address"], "amount":trans["amount"],
+        "transaction_inputs":trans["trans_inputs"], "transactions_outputs":trans["transaction_outputs"]}
+
         h = SHA.new(Transaction.to_json(Transaction.to_od(trans)).encode('utf8'))
         return sign.verify(h, binascii.unhexlify(signature))
 

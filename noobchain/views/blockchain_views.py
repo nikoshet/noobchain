@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template, make_response, session, Blueprint
+from flask import Flask, jsonify, request, render_template, Blueprint
 #from noobchain.main import app
 import json
 from collections import OrderedDict
@@ -41,7 +41,7 @@ def broadcast_ring():
 # Broadcast block to other nodes
 #@app.route('/broadcast/block/<int:node_id>', methods=['POST'])
 #def broadcast_block(node_id):
-@blueprint.route('/broadcast/block/', methods=['POST'])
+@blueprint.route('/broadcast/block', methods=['POST'])
 def broadcast_block():
     '''
     Post to http://127.0.0.1:5000/broadcast/block/ as json, the following

@@ -6,6 +6,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA
 import re
+import os
 import requests
 from flask import jsonify
 from backend.block import Block
@@ -45,6 +46,8 @@ class Node:
         self.is_bootstrap = is_bootstrap
         if self.is_bootstrap:
             self.id = 'id0'
+            self.wallet.utxos[0]=500
+            print(self.wallet.utxos)
             self.bkchain = Blockchain(self.ring)
             #self.create_genesis_block()
 
@@ -82,13 +85,6 @@ class Node:
         private_key = gen.exportKey('PEM').decode()
         public_key = gen.publickey().exportKey('PEM').decode()
         # exportKey, format param: "PEM" -> string
-
-        # Remove conventions
-        # '-----BEGIN PUBLIC KEY-----\n', '\n-----END PUBLIC KEY-----'
-        #public_key = re.sub('(-----BEGIN RSA PUBLIC KEY-----\\n)|(\\n-----END RSA PUBLIC KEY-----)', '', public_key)
-        # '-----BEGIN RSA PRIVATE KEY-----\n, '\n-----END RSA PRIVATE KEY-----'
-        #private_key = re.sub('(-----BEGIN RSA PRIVATE KEY-----\\n)|(\\n-----END RSA PRIVATE KEY-----)', '', private_key)
-
         return public_key, private_key
 
     # Create a wallet for this node2
@@ -102,8 +98,7 @@ class Node:
         # self.trans = self.create_transaction(0, self.wallet.public_key, self.no_of_nodes * 100)
         # create genesis transaction
         self.trans = Transaction(sender_address=0, receiver_address=self.address,
-                                 amount=500, transaction_inputs='',
-                                 transaction_outputs='')
+                                 amount=500, transaction_inputs='',wallet=self.wallet,id=self.id,genesis=True)
 
         self.add_transaction_to_block(self.new_block, self.trans)
         # Mine block
@@ -133,10 +128,10 @@ class Node:
         for member in self.ring:
             address = member.get('address')
             if address != self.address:
-                address = member.get('address')
+                #address = member.get('address')
                 public_key = member.get('public_key')
-                message = {'sender': self.address, 'receiver': address,
-                           'value': value}
+                #message = {'sender': self.address, 'receiver': address,
+                #          'value': value}
                 # req = requests.post(address, jsonify(message))
                 self.create_transaction(self.wallet.public_key, public_key, value)
                 # if len(self.ring) == self.no_of_nodes:
@@ -156,17 +151,14 @@ class Node:
     ### Transaction functions ###
 
     def create_transaction(self, sender_address, receiver_address, value):
-        last_block = self.bkchain.blocks[-1] #self.new_block
-        last_trans_output = last_block.transactions[-1].transaction_inputs
-        last_trans_id = last_block.transactions[-1].transaction_id
-        trans_input = last_trans_output  # previous_output_id
-        UTXOs = self.wallet.value - value
-        trans_output = {last_trans_id: (sender_address, receiver_address, value, UTXOs)}
-
+        tmp=0
+        trans_input=[]
+        for key, available in self.wallet.utxos.items():
+            if tmp<value:
+                trans_input.append(key)
+                tmp+=value
         # create new transaction
-        my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address,
-                               amount=value, transaction_inputs=trans_input,
-                               transaction_outputs=trans_output)
+        my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address,amount=value, transaction_inputs=trans_input,wallet=self.wallet,id=self.id)
         # Sign transaction
         my_trans.signature = Wallet.sign_transaction(self.wallet, my_trans)
         # Remember to broadcast it
@@ -193,7 +185,7 @@ class Node:
     def validate_transaction(self, transaction, signature, sender):
         # Use of signature and NBCs balance
         if self.verify_signature(transaction, signature, sender):
-            # and # if utxo ok
+            # and # ifxo o utk
             return True
         else:
             print('Error on validating')

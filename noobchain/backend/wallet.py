@@ -12,12 +12,14 @@ class Wallet:
         self.public_key = public_key
         self.private_key = private_key
         self.transactions = []
-        self.value = 0
+        self.utxos = {}
+        self.value = self.wallet_balance()
 
     def wallet_balance(self):
-        for trans in self.transactions:
-            # add UTXOS where receiver is this wallet
-            return 0
+        balance = 0
+        for key, value in self.utxos.items():
+            balance += value
+        return balance
 
     def get_public_key(self):
         return self.public_key

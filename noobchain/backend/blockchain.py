@@ -13,8 +13,10 @@ class Blockchain:
         self.genesis = Block(index=0, previous_hash=1, transactions=[], nonce=0)
 
         # Genesis transaction
-        transaction = Transaction(sender_address=0, receiver_address=self.ring[0]['public_key'], amount=500,
-                                  transaction_inputs='', transaction_outputs='', genesis=True)
+        transaction = Transaction(sender_address="0", receiver_address=self.ring[0]['public_key'], amount=500,
+                                  transaction_inputs='', wallet=None, id="id0", genesis=True)
+
+        self.genesis.transactions.append(transaction)
 
         self.genesis.transactions.append(transaction)
         self.genesis.current_hash = self.genesis.get_hash()

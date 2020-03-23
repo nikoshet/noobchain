@@ -70,16 +70,15 @@ sender_address = 'sender_public_key'
 receiver_address = 'receiver_public_key'
 amount = 5
 transaction_inputs = 0
-transaction_outputs = {1, (4, 1)}
 
 # create new transaction
 t1 = Transaction(sender_address=sender_address, receiver_address=receiver_address, amount=amount,
-                 transaction_inputs=transaction_inputs, transaction_outputs=transaction_outputs)
+                 transaction_inputs=transaction_inputs, wallet=None, id='id0')
 t1.signature = 'dummy1'
 
 
 t2 = Transaction(sender_address=sender_address, receiver_address=receiver_address, amount=amount,
-                 transaction_inputs=transaction_inputs, transaction_outputs=transaction_outputs)
+                 transaction_inputs=transaction_inputs, wallet=None, id='id0')
 t2.signature = 'dummy2'
 
 print(f'\nTransactions Example\n{t1.to_json()}')
@@ -100,7 +99,7 @@ print(f'\nBlockchain example\n{blockchain}')
 n_blocks = 5
 print(f'\n-------------------------- Mining {n_blocks} blocks.')
 
-for i in range(5):
+for i in range(n_blocks):
     block = blockchain.mine_block(difficulty=2)
     block.current_hash = block.get_hash()
 

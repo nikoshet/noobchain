@@ -5,11 +5,11 @@ from threading import Thread
 import time
 import json
 from hashlib import sha256
-from noobchain.backend.node import Node
-from noobchain.backend.transaction import Transaction
-from noobchain.backend.block import Block
-from noobchain.backend.blockchain import Blockchain
-from noobchain.views import layout_views, blockchain_views
+from backend.node import Node
+from backend.transaction import Transaction
+from backend.block import Block
+from backend.blockchain import Blockchain
+from views import layout_views, blockchain_views
 
 
 app = Flask(__name__, static_folder='static')
@@ -46,7 +46,7 @@ difficulty = args.dif
 
 print('\n-------------------------------------------------------------------------------------------------------------')
 print(f'Inputs: {HOST}, {PORT}, {boot}, {ip_of_bootstrap}, {port_of_bootstrap}, {capacity}, {difficulty}')
-print('\n-------------------------------------------------------------------------------------------------------------')
+print('-------------------------------------------------------------------------------------------------------------')
 print('Testing\n')
 
 
@@ -62,7 +62,7 @@ def get_chain():
 bootstrap = Node(ip=HOST, port=PORT, is_bootstrap=True, ip_of_bootstrap=ip_of_bootstrap,
                  port_of_bootstrap=port_of_bootstrap, no_of_nodes=no_of_nodes)
 
-print(f'Bootstrap public key: {bootstrap.public},\n\nPrivate key: {bootstrap.private}\n')
+print(f'Bootstrap\n{bootstrap.public}\n{bootstrap.private}\n')
 print(f'Ring {bootstrap.ring}')
 
 # Dummy variables
@@ -82,22 +82,35 @@ t2 = Transaction(sender_address=sender_address, receiver_address=receiver_addres
                  transaction_inputs=transaction_inputs, transaction_outputs=transaction_outputs)
 t2.signature = 'dummy2'
 
-print(f'Transactions Example\n{t1.to_json()}')
+print(f'\nTransactions Example\n{t1.to_json()}')
 
 blockchain = Blockchain(bootstrap.ring)
 block = Block(index=1, transactions=[t1, t2], nonce=0, previous_hash=0)
 
 # Hash block
-block.hash()
+block.current_hash = block.get_hash()
 
 print(f'\nBlock Details example\n{block.to_json()}')
 print(f'Hash: {block.current_hash}')
 
 blockchain.add_block(block)
 
-print(f'\nBlockchain example\n{blockchain}\n')
-blockchain.mine_block(difficulty=2)
+print(f'\nBlockchain example\n{blockchain}')
 
+n_blocks = 5
+print(f'\n-------------------------- Mining {n_blocks} blocks.')
+
+for i in range(5):
+    block = blockchain.mine_block(difficulty=2)
+    block.current_hash = block.get_hash()
+
+    print(f'\nMined block complete.. Printing New Block:\n{block.to_json()}')
+    if blockchain.validate_block(block):
+
+        print('Valid Block.. Adding to Chain..')
+        blockchain.add_block(block)
+
+print(f'\nPrinting Chain\n{blockchain}')
 print('-------------------------------------------------------------------------------------------------------------\n')
 
 

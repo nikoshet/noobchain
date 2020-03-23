@@ -15,35 +15,26 @@ class Block:
 
         # After successful hashing this should be filled out
         self.current_hash = None  # Current hash
-        self.current_hash_obj = None  # Current has as sha256 object to save calculations
-        self.od = None
 
     def to_od(self):
         od = OrderedDict([
             ('index', self.index),
             ('timestamp', self.timestamp),
             ('transactions', ([trans.to_od() for trans in self.transactions])),
-            ('nonce', self.nonce)
+            ('nonce', self.nonce),
+            ('previous_hash', self.previous_hash)
         ])
+
         return od
-
-    def hash(self, capacity=1, genesis=False):
-        #if len(self.transactions) < capacity and not genesis:
-        #    raise Exception(f'Trying to hash a block which has {len(self.transactions)} transactions'
-        #                    f', while capacity is {capacity}.')
-
-        od = OrderedDict([
-            ('index', self.index),
-            ('timestamp', self.timestamp),
-            ('transactions', ([trans.to_od() for trans in self.transactions])),
-            ('nonce', self.nonce)
-        ])
-
-        self.current_hash_obj = sha256(str(od).encode('utf-8'))
-        self.current_hash = self.current_hash_obj.hexdigest()
-
-        return self
 
     def to_json(self):
         # Convert object to json
         return json.dumps(self.to_od(), default=str)
+
+    def get_hash(self):
+        # This function does not update current_hash, current_hash_obj
+        return sha256(str(self.to_od()).encode('utf-8')).hexdigest()
+
+    def get_hash_obj(self):
+        # Get object instance as it is easier to update while trying new hashes (mining)
+        return sha256(str(self.to_od()).encode('utf-8'))

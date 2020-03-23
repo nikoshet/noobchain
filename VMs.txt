@@ -1,16 +1,21 @@
-public IP:83.212.77.3 -- No VMs Attached
+public IP:83.212.77.3 - hmmytasion01
 
-hmmytasion1
-user@snf-12199.ok-kno.grnetcloud.net:jOb2uWfCoM
+hmmytasion01
+user@snf-12256.ok-kno.grnetcloud.net
+user:cHCfiRZM5w
 
-hmmytasion2
-ser@snf-12197.ok-kno.grnetcloud.net:j6xStir3nF
+hmmytasion02
+user@snf-12257.ok-kno.grnetcloud.net
+user:jQqYDjLo5G
 
-hmmytasion3
-user@snf-12198.ok-kno.grnetcloud.net:SlMkTqGT5j
+hmmytasion03
+user@snf-12258.ok-kno.grnetcloud.net
+user:7QyRONPz0K
 
-hmmytasion4
-user@snf-12200.ok-kno.grnetcloud.net:szCYSJTZ8v
+hmmytasion04
+user@snf-12259.ok-kno.grnetcloud.net
+user:CqWyaVfe6f
 
-hmmytasion5
-user@snf-12201.ok-kno.grnetcloud.net:zbmO76v47N
+hmmytasion05
+user@snf-12260.ok-kno.grnetcloud.net
+user:gscQAF95vb

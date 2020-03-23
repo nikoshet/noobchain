@@ -6,7 +6,6 @@ class Transaction:
 
     _id = 0     # Incremental id for each instance created
 
-    #def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs):
     def __init__(self, sender_address, receiver_address, amount, transaction_inputs, transaction_outputs, genesis=False):
 
         self.sender_address = sender_address                    # Sender's public key

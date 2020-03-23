@@ -17,21 +17,18 @@ class Blockchain:
                                   transaction_inputs='', transaction_outputs='', genesis=True)
 
         self.genesis.transactions.append(transaction)
-        self.genesis.hash(genesis=True)
+        self.genesis.current_hash = self.genesis.get_hash()
 
-        self.blocks = []  # List of added blocks
-        self.add_block(self.genesis)
+        self.blocks = [self.genesis]  # List of added blocks (aka chain)
 
-        self.public_key = 'a_public_key'
-
-        self.resolve_conflict = False  # Check chain updates (bigger was found)
+        self.resolve = False  # Check chain updates (bigger was found)
 
     def __str__(self):
-        chain = f'{self.genesis.index} ({0}) '
+        chain = f'{self.genesis.index} ({0})'
 
         # ignore genesis
         for block in self.blocks[1:]:
-            chain += f'-> {block.index} ({block.current_hash})'
+            chain += f' -> {block.index} ({block.current_hash})'
 
         return chain
 
@@ -41,18 +38,21 @@ class Blockchain:
         return self
 
     def mine_block(self, difficulty):
-        self.blocks[-1].hash()
+
         # grab hash of latest block in the chain
-        prev_hash = self.blocks[-1].current_hash_obj
+        prev_hash = self.blocks[-1].get_hash_obj()
         nonce = 0
 
         # update hash
         prev_hash.update(f'{nonce}{prev_hash.hexdigest()}'.encode('utf-8'))
 
-        # try new hashes until first n characters are 0.
+        # try new hashes until first n characters are 0
         while prev_hash.hexdigest()[:difficulty] != '0' * difficulty:
             prev_hash.update(f'{nonce}{prev_hash.hexdigest()}'.encode('utf-8'))
             nonce += 1
+
+        # update with new calculate hash
+        self.blocks[-1].current_hash = prev_hash.hexdigest()
 
         # TODO
         # Fix code below for open transactions (if capacity > 1?!?!)
@@ -60,31 +60,30 @@ class Blockchain:
         #for tx in copied_transactions:
         #    if not Wallet.verify_transaction(tx):
         #        return None
-
         #copied_transactions.append(reward_transaction)
+
+        # Create new block
         block = Block(index=len(self.blocks), previous_hash=self.blocks[-1].current_hash,
                       transactions=[], nonce=nonce)
-        block.hash()
 
-        print(f'\nBlock to broadcast: {block.to_json()}')
-        self.blocks.append(block)
-        # Actually post it at http://{address}/broadcast/block
-        # self.broadcast_block(block)
-        return self
+        #print(f'\nBlock to broadcast: {block.to_json()}')
+        #self.blocks.append(block)
+
+        return block
 
     def broadcast_block(self, block):
+        # Actually post it at http://{address}/broadcast/block
         for member in self.ring:
             url = f'{member.get("address")}/broadcast/block/'
             response = requests.post(url, block.to_json())
             if response.status_code == 400 or response.status_code == 500:
                 print('Block declined, needs resolving')
-
             if response.status_code == 409:
-                self.resolve_conflicts = True
+                self.resolve = True
 
         return self
 
-    def resolve(self):
+    def resolve_conflict(self):
 
         for member in self.ring:
             # Request chain from nodes
@@ -99,23 +98,35 @@ class Blockchain:
 
             print(f'\nCollected chain {new_blocks}\n')
             # If bigger is to be found, replace existing chain
-            if len(new_blocks) > len(self.blocks) and self.verify_blocks(new_blocks):
+            if len(new_blocks) > len(self.blocks) and self.validate_chain(new_blocks):
                 self.blocks = new_blocks
 
-        self.resolve_conflict = False
+        self.resolve = False
 
         return self
 
 
 # ---------------------------------------------- VERIFICATION FUNCTIONS ----------------------------------------------
 
-    def verify_blocks(self, blockchain):
+    def validate_block(self, block):
+
+        if block.current_hash != block.get_hash():
+            return False
+
+        if self.blocks[-1].current_hash != block.previous_hash:
+            return False
+
+        return True
+
+    def validate_chain(self, blockchain):
 
         # Loop chain to validate that hashes are connected
         for (index, block) in enumerate(blockchain):
             if index == 0:
                 continue
             if block.previous_hash != blockchain[index - 1].current_hash:
+                return False
+            if block.current_hash != block.get_hash():
                 return False
 
         return True

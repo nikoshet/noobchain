@@ -13,8 +13,7 @@ class Blockchain:
         self.genesis = Block(index=0, previous_hash=1, transactions=[], nonce=0)
 
         # Genesis transaction
-        transaction = Transaction(sender_address=0, receiver_address=self.ring[0]['public_key'], amount=500,
-                                  transaction_inputs='', transaction_outputs='', genesis=True)
+        transaction = Transaction(sender_address="0", receiver_address=self.ring[0]['public_key'], amount=500,transaction_inputs='',wallet=None,id="id0", genesis=True)
 
         self.genesis.transactions.append(transaction)
 
@@ -24,7 +23,7 @@ class Blockchain:
         self.blocks = []  # List of added blocks
         self.add_block(self.genesis)
 
-        self.reward = 10  # Reward for mining
+        #self.reward = 10  # Reward for mining
         self.public_key = 'a_public_key'
 
 
@@ -47,7 +46,7 @@ class Blockchain:
         # grab hash of latest block in the chain
         prev_hash = self.blocks[-1].current_hash_obj
         nonce = 0
-
+ 
         # update hash
         prev_hash.update(f'{nonce}{prev_hash.hexdigest()}'.encode('utf-8'))
 

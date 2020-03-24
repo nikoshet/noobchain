@@ -172,7 +172,7 @@ class Node:
             if address != self.address:
                 # Post request
                 # send to ring.sender
-                req = requests.post(address + "/transactions/create", json=json.dumps(message))# data=jsonify(message))
+                req = requests.post(address + "/broadcast/transaction", json=json.dumps(message))# data=jsonify(message))
                 if not req.status_code == 200:
                     print('Error:',req.status_code)
                 else:

@@ -94,16 +94,23 @@ class Blockchain:
 
             # Build it using json
             # Change this when classes are finalised
-            new_blocks = [Block(block['index'], block['timestamp'], block['nonce'],
-                                [Transaction(t['sender_address'], t['receiver_address'], t['amount'], t['transaction_id'],
-                                             t['transaction_inputs'], t['transaction_outputs'], t['signature'])
-                                 for t in block['transactions']])
-                          for block in new_blocks]
+            # Replace wallet
+            # Generate correct blocks in order to replace ones in the chain
+            blocks = [
+                Block(index=block["index"], transactions=[
+                    Transaction(sender_address=t["sender_address"], receiver_address=t["receiver_address"],
+                                amount=t["amount"], transaction_inputs=t["transaction_inputs"],
+                                wallet=t["wallet"], ids=t["node_id"]) for t in block["transactions"]
+                ],
+                      nonce=block["nonce"], previous_hash=block["previous_hash"], timestamp=block["timestamp"]) for
+                block in
+                new_blocks["blockchain"]
+            ]
 
             print(f'\nCollected chain {new_blocks}\n')
             # If bigger is to be found, replace existing chain
             if len(new_blocks) > len(self.blocks) and self.validate_chain(new_blocks):
-                self.blocks = new_blocks
+                self.blocks = blocks
 
         self.resolve = False
 

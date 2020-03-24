@@ -19,12 +19,12 @@ app.config['DEBUG'] = False
 
 # Arguments
 parser = ArgumentParser()
-#parser.add_argument('-ip', default='0.0.0.0', type=str, help='ip of node')
-parser.add_argument('-ip', default='127.0.0.1', type=str, help='ip of node')
+parser.add_argument('-ip', default='0.0.0.0', type=str, help='ip of node')
+#parser.add_argument('-ip', default='127.0.0.1', type=str, help='ip of node')
 parser.add_argument('-p', '--port', default=1000, type=int, help='port to listen on')
 parser.add_argument('-bootstrap', default='True', type=str, help='is node bootstrap?')
-#parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
-parser.add_argument('-ip_bootstrap', default='127.0.0.1', type=str, help='ip of bootstrap')
+parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
+#parser.add_argument('-ip_bootstrap', default='127.0.0.1', type=str, help='ip of bootstrap')
 parser.add_argument('-port_bootstrap', default=1000, type=int, help='port of bootstrap')
 parser.add_argument('-nodes', default=2, type=int, help='number of nodes')
 parser.add_argument('-cap', default=2, type=int, help='capacity of blocks')

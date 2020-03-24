@@ -7,6 +7,7 @@ import time
 import json
 from hashlib import sha256
 from backend.node import Node
+from backend.wallet import Wallet
 from backend.transaction import Transaction
 from backend.block import Block
 from backend.blockchain import Blockchain
@@ -18,10 +19,12 @@ app.config['DEBUG'] = False
 
 # Arguments
 parser = ArgumentParser()
-parser.add_argument('-ip', default='0.0.0.0', type=str, help='ip of node')
+#parser.add_argument('-ip', default='0.0.0.0', type=str, help='ip of node')
+parser.add_argument('-ip', default='127.0.0.1', type=str, help='ip of node')
 parser.add_argument('-p', '--port', default=1000, type=int, help='port to listen on')
 parser.add_argument('-bootstrap', default='True', type=str, help='is node bootstrap?')
-parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
+#parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
+parser.add_argument('-ip_bootstrap', default='127.0.0.1', type=str, help='ip of bootstrap')
 parser.add_argument('-port_bootstrap', default=1000, type=int, help='port of bootstrap')
 parser.add_argument('-nodes', default=2, type=int, help='number of nodes')
 parser.add_argument('-cap', default=2, type=int, help='capacity of blocks')
@@ -140,6 +143,58 @@ def register_node():
     new_node.register_node_to_ring(message)
     response = 'success'
     return jsonify(response), 200
+
+# Get current node's version of chain
+@app.route('/receive/chain', methods=['GET'])
+def get_chain():
+    return jsonify(new_node.blockchain.to_json()), 200
+
+@app.route('/broadcast/chain', methods=['POST'])
+def post_chain():
+    # Test, turn json into object
+    data = json.loads(request.get_json())
+    print(f'Current blockchain {new_node.blockchain}')
+    print(f'Popping last block to notice change')
+    print(f'{new_node.blockchain.blocks.pop()}')
+
+    print(f'Trying to update blocks in blockchain')
+
+    # Replace wallet
+    # Generate correct blocks in order to replace ones in the chain
+    blocks = [
+        Block(index=block["index"], transactions=[
+            Transaction(sender_address=t["sender_address"], receiver_address=t["receiver_address"],
+                        amount=t["amount"], transaction_inputs=t["transaction_inputs"],
+                        wallet=t["wallet"], ids=t["node_id"]) for t in block["transactions"]
+        ],
+              nonce=block["nonce"], previous_hash=block["previous_hash"], timestamp=block["timestamp"]) for block in
+        data["blockchain"]
+    ]
+
+    new_node.blockchain.blocks = blocks
+    print(f'new blockchain {new_node.blockchain}')
+
+    return 'Chain successfully updated!', 201
+
+# Get current wallet
+@app.route('/receive/wallet', methods=['GET'])
+def get_wallet():
+    return jsonify(new_node.wallet.to_json()), 200
+
+# Get current wallet
+@app.route('/broadcast/wallet', methods=['POST'])
+def post_wallet():
+    # Test, turn json into object
+    data = json.loads(request.get_json())
+
+    print(data)
+
+    wallet = Wallet(public_key=data["public_key"], private_key=data["private_key"], transactions=data["transactions"],
+                    utxos=data["utxos"], others_utxos=data["others_utxos"], value=data["value"])
+
+    print(wallet)
+
+    return 200
 
 #------------------------------------
 # Home page

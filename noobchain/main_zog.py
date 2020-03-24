@@ -53,9 +53,7 @@ print('Testing\n')
 # Get current node's version of chain
 @app.route('/receive/chain', methods=['GET'])
 def get_chain():
-    blockchain_json = [block.to_json() for block in blockchain.blocks]
-
-    return jsonify(blockchain_json), 200
+    return blockchain.to_json(), 200
 
 
 # Create bootstrap node

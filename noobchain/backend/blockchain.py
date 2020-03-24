@@ -2,6 +2,9 @@ from backend.block import Block
 from backend.transaction import Transaction
 import json
 import requests
+from collections import OrderedDict
+from hashlib import sha256
+import json
 
 
 class Blockchain:
@@ -15,8 +18,6 @@ class Blockchain:
         # Genesis transaction
         transaction = Transaction(sender_address="0", receiver_address=self.ring[0]['public_key'], amount=500,
                                   transaction_inputs='', wallet=None, ids="id0", genesis=True)
-
-        self.genesis.transactions.append(transaction)
 
         self.genesis.transactions.append(transaction)
         self.genesis.current_hash = self.genesis.get_hash()
@@ -92,6 +93,7 @@ class Blockchain:
             new_blocks = requests.get(f'http://{member.get("address")}/chain').json()
 
             # Build it using json
+            # Change this when classes are finalised
             new_blocks = [Block(block['index'], block['timestamp'], block['nonce'],
                                 [Transaction(t['sender_address'], t['receiver_address'], t['amount'], t['transaction_id'],
                                              t['transaction_inputs'], t['transaction_outputs'], t['signature'])
@@ -106,6 +108,19 @@ class Blockchain:
         self.resolve = False
 
         return self
+
+    def to_od(self):
+        od = OrderedDict([
+            ('blockchain', [block.to_od() for block in self.blocks])
+        ])
+
+        return od
+
+    def to_json(self):
+        # Convert object to json
+        # return json.dumps(self.to_od())
+        return json.dumps(self.to_od(), default=str)
+
 
 
 # ---------------------------------------------- VERIFICATION FUNCTIONS ----------------------------------------------

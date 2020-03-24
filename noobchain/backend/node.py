@@ -42,22 +42,27 @@ class Node:
         bootstrap_address = self.get_address(ip_of_bootstrap, port_of_bootstrap)
         self.ring = [{'id': str.join('id', str(0)), 'public_key': self.wallet.public_key, 'address': bootstrap_address}]
 
-        self.bkchain = None
+        self.blockchain = None
         self.new_block = None
         self.trans = ''
         # Check if node2 is bootstrap
         self.is_bootstrap = is_bootstrap
+
         if self.is_bootstrap:
             self.id = 'id0'
             self.wallet.utxos["id00"]=500
             #print(self.wallet.utxos)
-            self.bkchain = Blockchain(self.ring)
             #self.create_genesis_block()
 
         else:
-            self.wallet.others_utxos["id0"]=[("id00",500)]
-            Thread(target=self.register_on_bootstrap).start()
-            #self.register_on_bootstrap()
+            self.wallet.others_utxos["id0"] = [("id00", 500)]
+
+            # Not sure about the runtime of this thread, uncomment
+            # Thread(target=self.register_on_bootstrap).start()
+
+            self.register_on_bootstrap()
+
+        self.blockchain = Blockchain(self.ring)
 
         # self.start(ip, port, ip_of_bootstrap, port_of_bootstrap)
 
@@ -106,7 +111,7 @@ class Node:
 
         self.add_transaction_to_block(self.new_block, self.trans)
         # Mine block
-        self.bkchain.mine_block(self.new_block)
+        self.blockchain.mine_block(self.new_block)
 
     def register_node_to_ring(self, message):
         # Add the new node to ring
@@ -271,18 +276,18 @@ class Node:
 
 
     def create_new_block(self, previous_hash, nonce):
-        new_block_index = len(self.bkchain.blocks)
+        new_block_index = len(self.blockchain.blocks)
         self.new_block = Block(new_block_index, [], nonce, previous_hash)
         # return True
-        self.bkchain.append(self.new_block)
+        self.blockchain.append(self.new_block)
 
     def add_transaction_to_block(self, block, transaction):
         # if transaction is for genesis block
-        if len(self.bkchain.blocks) == 0:
-            self.bkchain.mine_block(block)
+        if len(self.blockchain.blocks) == 0:
+            self.blockchain.mine_block(block)
         # if enough transactions mine
         if len(self.new_block.transactions) == capacity:
-            self.bkchain.mine_block(block)
+            self.blockchain.mine_block(block)
         # append transaction to block
         else:
             self.new_block.transactions.append(transaction)
@@ -291,18 +296,4 @@ class Node:
 
     def valid_proof(self):
         MINING_DIFFICULTY = difficulty
-        return True
-
-    ### Concencus functions ###
-
-    def validate_block(self, chain):
-        # Check for the longer chain across all nodes
-        for np_of_block in range(1, len(chain)):
-            block = chain[np_of_block]
-            if not self.valid_proof(block) or block['previous_hash'] != chain[np_of_block - 1].hash:
-                return False  # resolve_conflict(block)
-
-    def resolve_conflict(self, block):
-        # Resolve correct chain
-        # Get blockchain size from all nodes and keep largest
         return True

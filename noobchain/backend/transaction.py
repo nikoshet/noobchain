@@ -43,10 +43,14 @@ class Transaction:
             ('transaction_inputs', self.transaction_inputs),
             ('transaction_outputs', self.transaction_outputs),
             ('signature', self.signature),
+            ('wallet', self.wallet),
+            ('change', self.change),
+            ('node_id', self.node_id),
         ])
 
         return od
 
     def to_json(self):
         # Convert object to json
+        #return json.dumps(self.to_od())
         return json.dumps(self.to_od(), default=str)

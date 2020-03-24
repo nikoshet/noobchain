@@ -1,20 +1,39 @@
 import base64
-import json
 from Crypto.Hash import SHA
 from Crypto.Signature import PKCS1_v1_5
 import binascii
 from Crypto.PublicKey import RSA
+from collections import OrderedDict
+from hashlib import sha256
+import json
+
 
 class Wallet:
 
-    def __init__(self, public_key, private_key):
+    def __init__(self, public_key, private_key, transactions=None, utxos=None, others_utxos=None, value=None):
         #self.id = node_id
         self.public_key = public_key
         self.private_key = private_key
-        self.transactions = []
-        self.utxos = {}
-        self.others_utxos={}
-        self.value = self.wallet_balance()
+
+        if transactions is None:
+            transactions = []
+
+        self.transactions = transactions
+
+        if utxos is None:
+            utxos = {}
+
+        self.utxos = utxos
+
+        if others_utxos is None:
+            others_utxos = {}
+
+        self.others_utxos = others_utxos
+
+        if value is None:
+            value = self.wallet_balance()
+
+        self.value = value
 
     def wallet_balance(self):
         balance = 0
@@ -38,3 +57,20 @@ class Wallet:
         transaction = transaction.to_od()
         h = SHA.new(json.dumps(transaction, default=str).encode('utf8'))
         return base64.b64encode(my_sign.sign(h)).decode('utf8')
+
+    def to_od(self):
+        od = OrderedDict([
+            ('public_key', self.public_key),
+            ('private_key', self.private_key),
+            ('transactions', ([trans.to_od() for trans in self.transactions])),
+            ('utxos', self.utxos),
+            ('others_utxos', self.others_utxos),
+            ('value', self.value)
+        ])
+
+        return od
+
+    def to_json(self):
+        # Convert object to json
+        # return json.dumps(self.to_od())
+        return json.dumps(self.to_od(), default=str)

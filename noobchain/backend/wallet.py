@@ -1,5 +1,5 @@
 import base64
-
+import json
 from Crypto.Hash import SHA
 from Crypto.Signature import PKCS1_v1_5
 import binascii
@@ -13,11 +13,13 @@ class Wallet:
         self.private_key = private_key
         self.transactions = []
         self.utxos = {}
+        self.others_utxos={}
         self.value = self.wallet_balance()
 
     def wallet_balance(self):
         balance = 0
         for key, value in self.utxos.items():
+            print(value)
             balance += value
         return balance
 
@@ -31,22 +33,8 @@ class Wallet:
         return self.transactions
 
     def sign_transaction(self, transaction):
-        #priv_key = RSA.importKey(binascii.unhexlify(self.private_key))
-        #priv_key = self.private_key
         priv_key = RSA.importKey(self.private_key)
         my_sign = PKCS1_v1_5.new(priv_key)
-
-        #h = SHA.new(str(transaction)).encode('utf8')
-        #h = SHA.new(str(transaction.to_json()).encode('utf8'))#.hexdigest())
-        h = SHA.new(transaction.to_json().encode('utf8')) #.hexdigest()  # .hexdigest())
-        #h = SHA.new(str(self.to_dict()).encode('utf8'))
-        #print(transaction.to_json())
-        #print(my_sign.sign(str(transaction.to_od())))
-        #return 1
-        #return binascii.hexlify(my_sign.sign(h)).decode('ascii')
-        #return base64.b64encode(my_sign.sign(h)).decode('utf8')
-        #return my_sign.sign(h)
+        transaction = transaction.to_od()
+        h = SHA.new(json.dumps(transaction, default=str).encode('utf8'))
         return base64.b64encode(my_sign.sign(h)).decode('utf8')
-
-        #signature = PKCS1_v1_5.new(private_key).sign(self.transaction_id)
-        #return signature

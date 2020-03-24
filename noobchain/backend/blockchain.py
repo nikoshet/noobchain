@@ -14,7 +14,7 @@ class Blockchain:
 
         # Genesis transaction
         transaction = Transaction(sender_address="0", receiver_address=self.ring[0]['public_key'], amount=500,
-                                  transaction_inputs='', wallet=None, id="id0", genesis=True)
+                                  transaction_inputs='', wallet=None, ids="id0", genesis=True)
 
         self.genesis.transactions.append(transaction)
 

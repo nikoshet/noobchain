@@ -6,18 +6,18 @@ class Transaction:
 
     _id = 0     # Incremental id for each instance created
 
-    def __init__(self, sender_address, receiver_address, amount, transaction_inputs, wallet, id, genesis=False):
+    def __init__(self, sender_address, receiver_address, amount, transaction_inputs, wallet, ids, genesis=False):
 
         self.sender_address = sender_address  # Sender's public key
         self.receiver_address = receiver_address  # Receiver's public key
         self.amount = amount  # Transfer Amount
-        self.transaction_id = Transaction._id  # Transaction Id
+        self.transaction_id = str(ids)+str(Transaction._id)  # Transaction Id
         self.transaction_inputs = transaction_inputs  # Previous Transaction Id
         self.transaction_outputs = []  # {id: (Amount Transferred, Change)}
         self.signature = ''  # Proof that sender requested transaction
         self.wallet = wallet
         self.change = 0
-        self.node_id = id
+        self.node_id = ids
 
         if not genesis:
             total_utxo = 0
@@ -25,15 +25,12 @@ class Transaction:
                 total_utxo += wallet.utxos[id]
             self.change = total_utxo - self.amount
             self.transaction_outputs.append(
-                {str(self.node_id) + str(self.transaction_id): (self.receiver_address, self.amount)})
+                {str(self.node_id) + str(Transaction._id): (self.receiver_address, self.amount)})
             Transaction._id += 1
-            self.transaction_id = Transaction._id
             self.transaction_outputs.append(
-                {str(self.node_id) + str(self.transaction_id): (self.receiver_address, self.change)})
-            print(self.transaction_outputs)
+                {str(self.node_id) + str(Transaction._id): (self.receiver_address, self.change)})
         else:
-            self.transaction_outputs.append({str(self.transaction_id): (self.receiver_address, self.amount)})
-
+            self.transaction_outputs.append({"id0"+str(Transaction._id): (self.receiver_address, self.amount)})
         Transaction._id += 1
 
     def to_od(self):

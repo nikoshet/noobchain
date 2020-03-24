@@ -34,7 +34,6 @@ if args.bootstrap == 'True':
     boot = True
 else:
     boot = False
-print(boot)
 ip_of_bootstrap = args.ip_bootstrap
 port_of_bootstrap = args.port_bootstrap
 no_of_nodes = args.nodes
@@ -85,7 +84,7 @@ def broadcast_ring():
     #print(message)
     new_node.ring = json.loads(message)
     for node in new_node.ring:
-        if node["public_key"]==new_node.public: new_node.id=node["id"]
+        if node["public_key"]==new_node.public: new_node.id="id"+str(node["id"])
     response = 'success'
     return jsonify(response), 200
 

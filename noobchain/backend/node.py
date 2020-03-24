@@ -13,6 +13,7 @@ from backend.block import Block
 from backend.blockchain import Blockchain
 from backend.transaction import Transaction
 from collections import OrderedDict
+from base64 import b64decode
 
 # from noobchain.main import capacity, difficulty
 
@@ -48,12 +49,13 @@ class Node:
         self.is_bootstrap = is_bootstrap
         if self.is_bootstrap:
             self.id = 'id0'
-            self.wallet.utxos[0]=500
+            self.wallet.utxos["id00"]=500
             #print(self.wallet.utxos)
             self.bkchain = Blockchain(self.ring)
             #self.create_genesis_block()
 
         else:
+            self.wallet.others_utxos["id0"]=[("id00",500)]
             Thread(target=self.register_on_bootstrap).start()
             #self.register_on_bootstrap()
 
@@ -117,13 +119,8 @@ class Node:
 
         # Broadcast ring to all nodes
         if len(self.ring) == self.no_of_nodes:
-            print("AXAXAXAXAXAX")
             Thread(target=self.broadcast_ring_to_nodes).start()
-            #self.broadcast_ring_to_nodes()
-            # Answer to node
-            # self.respond_to_node(address, public_key)
             Thread(target=self.respond_to_node).start()
-            #self.respond_to_node()
 
     def respond_to_node(self):
         value = 100
@@ -155,18 +152,16 @@ class Node:
     def create_transaction(self, sender_address, receiver_address, value):
         tmp=0
         trans_input=[]
+        print(sender_address)
         for key, available in self.wallet.utxos.items():
             if tmp<value:
                 trans_input.append(key)
                 tmp+=value
-        # create new transaction
-        my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address,amount=value, transaction_inputs=trans_input,wallet=self.wallet,id=self.id)
-        # Sign transaction
+        my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address,amount=value, transaction_inputs=trans_input,wallet=self.wallet,ids=self.id)
         my_trans.signature = Wallet.sign_transaction(self.wallet, my_trans)
-        # Remember to broadcast it
         message = {'transaction': my_trans.to_json()}
-        #print(message)
         self.broadcast_transaction(message)
+        self.verify_signature(dict(my_trans.to_od()),my_trans.signature,self.public)
         return my_trans
 
     def broadcast_transaction(self, message):
@@ -179,7 +174,6 @@ class Node:
                 # send to ring.sender
                 req = requests.post(address + "/transactions/create", json=json.dumps(message))# data=jsonify(message))
                 if not req.status_code == 200:
-                    #print(req.text)
                     print('Error:',req.status_code)
                 else:
                     print('Success on broadcasting transaction on node:', address)
@@ -194,19 +188,87 @@ class Node:
             return False
 
     def verify_signature(self, trans, signature, pub_key):
-        #pub_key = RSA.importKey(binascii.unhexlify(trans.sender_address))
         sign = PKCS1_v1_5.new(pub_key)
-        to_test={"sender_adress":trans["sender_adress"], "receiver_address":trans["receiver_address"], "amount":trans["amount"],
-        "transaction_inputs":trans["trans_inputs"], "transactions_outputs":trans["transaction_outputs"]}
+        to_test= OrderedDict([
+            ('sender_address', trans["sender_address"]),
+            ('receiver_address', trans["receiver_address"]),
+            ('amount', trans["amount"]),
+            ('transaction_id', trans["transaction_id"]),
+            ('transaction_inputs', trans["transaction_inputs"]),
+            ('transaction_outputs', trans["transaction_outputs"]),
+            ("signature","")])
+        to_test = json.dumps(to_test, default=str)
+        h = SHA.new(to_test.encode('utf8'))
+        public_key = RSA.importKey(pub_key)
+        sign_to_test = PKCS1_v1_5.new(public_key)
+        if sign_to_test.verify(h,b64decode(trans["signature"])):
+            self.update_utxos(trans,self.wallet)
+            return True
+        return
 
-        h = SHA.new(Transaction.to_json(Transaction.to_od(trans)).encode('utf8'))
-        return sign.verify(h, binascii.unhexlify(signature))
+    def update_utxos(self,trans, portofoli):
+        i_got_money = False
+        i_got_change = False
+        for node in self.ring:
+                if node["public_key"]==trans["receiver_address"]:   
+                    id_receiver = "id"+str(node["id"])
+                if node["public_key"]==trans["sender_address"]:
+                    id_sender = "id"+str(node["id"])
+        if id_receiver!=self.id:
+             try:
+                portofoli.others_utxos[id_receiver]
+             except:
+                portofoli.others_utxos[id_receiver]=[]
+        if id_sender!=self.id:
+             try:
+                 portofoli.others_utxos[id_sender]
+             except:
+                portofoli.others_utxos[id_sender]=[]
 
+        if trans["receiver_address"]==self.public:
+            portofoli.utxos[list(trans["transaction_outputs"][0].keys())[0]]=trans["transaction_outputs"][0][list(trans["transaction_outputs"][0].keys())[0]][1]
+            i_got_money = True
+        if trans["sender_address"]==self.public:
+            for utxos_spend in trans["transaction_inputs"]:
+                del portofoli.utxos[utxos_spend]
+            if trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]>0:
+                portofoli.utxos[list(trans["transaction_outputs"][1].keys())[0]]=trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]
+            i_got_change = True
+        
+        if i_got_money:
+            items_to_remove = []
+            for item in portofoli.others_utxos[id_sender]:
+                if item[0] in trans["transaction_inputs"]:
+                    items_to_remove.append(item)
+            for item in items_to_remove:
+                portofoli.others_utxos[id_sender].remove(item)
+            if trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]>0:
+                portofoli.others_utxos[id_sender].append((list(trans["transaction_outputs"][1].keys())[0],
+                                                                            trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]))
+        
+        elif i_got_change:
+             for node in self.ring:
+                if node["public_key"]==trans["receiver_address"]:   
+                    id_receiver = "id"+str(node["id"])
+                    break
+            
+             portofoli.others_utxos[id_receiver].append((list(trans["transaction_outputs"][0].keys())[0],trans["transaction_outputs"][0][list(trans["transaction_outputs"][0].keys())[0]][1]))
+            
+        else:
+            portofoli.others_utxos[id_receiver].append((list(trans["transaction_outputs"][0].keys())[0],trans["transaction_outputs"][0][list(trans["transaction_outputs"][0].keys())[0]][1]))
+            items_to_remove = []
+            for item in portofoli.others_utxos[id_sender]:
+                if item[0] in trans["transaction_inputs"]:
+                    items_to_remove.append(item)
+            for item in items_to_remove:
+                portofoli.others_utxos[id_sender].remove(item)
+            
+            if trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]>0:
+                portofoli.others_utxos[id_sender].append((list(trans["transaction_outputs"][1].keys())[0],
+                                                                            trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]))
+        print(portofoli.wallet_balance())
+        print(portofoli.others_utxos)
 
-        #return base64.b64encode(my_sign.sign(h)).decode('utf8')
-
-
-    ### Block functions ###
 
     def create_new_block(self, previous_hash, nonce):
         new_block_index = len(self.bkchain.blocks)

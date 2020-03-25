@@ -5,7 +5,7 @@ import requests
 from collections import OrderedDict
 from hashlib import sha256
 import json
-
+import backend.node
 
 class Blockchain:
     def __init__(self, ring):
@@ -20,7 +20,10 @@ class Blockchain:
                                   transaction_inputs='', wallet=None, ids="id0", genesis=True)
 
         self.genesis.transactions.append(transaction)
+        self.genesis.timestamp=0
         self.genesis.current_hash = self.genesis.get_hash()
+        print(self.genesis.to_od())
+        print(self.genesis.current_hash)
 
         self.blocks = [self.genesis]  # List of added blocks (aka chain)
 
@@ -40,39 +43,28 @@ class Blockchain:
 
         return self
 
-    def mine_block(self, difficulty):
+    def mine_block(self, difficulty, continue_mine):
 
         # grab hash of latest block in the chain
-        prev_hash = self.blocks[-1].get_hash_obj()
+        #prev_hash = self.blocks[-1].get_hash_obj()
+        #We mine the whole block until the conditions are met or we get the block from another user
         nonce = 0
-
+        block_to_mine = self.blocks[-1]
         # update hash
-        prev_hash.update(f'{nonce}{prev_hash.hexdigest()}'.encode('utf-8'))
-
+        block_hash = block_to_mine.get_hash_obj()
         # try new hashes until first n characters are 0
-        while prev_hash.hexdigest()[:difficulty] != '0' * difficulty:
-            prev_hash.update(f'{nonce}{prev_hash.hexdigest()}'.encode('utf-8'))
+        while block_hash.hexdigest()[:difficulty] != '0' * difficulty and continue_mine()==True:
+            #block_hash.update(f'{nonce}{prev_hash.hexdigest()}'.encode('utf-8'))
+            block_hash = block_to_mine.get_hash_obj()
             nonce += 1
+            block_to_mine.nonce = nonce
 
         # update with new calculate hash
-        self.blocks[-1].current_hash = prev_hash.hexdigest()
+        self.blocks[-1].current_hash = block_hash.hexdigest()
+        self.blocks[-1].nonce = nonce
+        self.broadcast_block(self.blocks[-1])
 
-        # TODO
-        # Fix code below for open transactions (if capacity > 1?!?!)
-        #copied_transactions = self.__open_transactions[:]
-        #for tx in copied_transactions:
-        #    if not Wallet.verify_transaction(tx):
-        #        return None
-        #copied_transactions.append(reward_transaction)
-
-        # Create new block
-        block = Block(index=len(self.blocks), previous_hash=self.blocks[-1].current_hash,
-                      transactions=[], nonce=nonce)
-
-        #print(f'\nBlock to broadcast: {block.to_json()}')
-        #self.blocks.append(block)
-
-        return block
+        return
 
     def broadcast_block(self, block):
         # Actually post it at http://{address}/broadcast/block

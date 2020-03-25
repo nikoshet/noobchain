@@ -19,7 +19,7 @@ from base64 import b64decode
 
 import binascii
 
-capacity = 5
+capacity = 1
 difficulty = 4
 
 
@@ -32,6 +32,7 @@ class Node:
         self.no_of_nodes = no_of_nodes
         self.id = ''
         self.address = self.get_address(self.ip, self.port)
+        self.pending_transactions=[]
 
         # Get a public key and a private key with RSA
         self.public, self.private = self.first_time_keys()
@@ -45,6 +46,7 @@ class Node:
         self.blockchain = None
         self.new_block = None
         self.trans = ''
+        self.mining=True
         # Check if node2 is bootstrap
         self.is_bootstrap = is_bootstrap
 
@@ -53,16 +55,17 @@ class Node:
             self.wallet.utxos["id00"]=500
             #print(self.wallet.utxos)
             #self.create_genesis_block()
+            self.blockchain = Blockchain(self.ring)
 
         else:
             self.wallet.others_utxos["id0"] = [("id00", 500)]
 
             # Not sure about the runtime of this thread, uncomment
-            # Thread(target=self.register_on_bootstrap).start()
+            Thread(target=self.register_on_bootstrap).start()
 
-            self.register_on_bootstrap()
+            #self.register_on_bootstrap()
 
-        self.blockchain = Blockchain(self.ring)
+        
 
         # self.start(ip, port, ip_of_bootstrap, port_of_bootstrap)
 
@@ -157,7 +160,6 @@ class Node:
     def create_transaction(self, sender_address, receiver_address, value):
         tmp=0
         trans_input=[]
-        print(sender_address)
         for key, available in self.wallet.utxos.items():
             if tmp<value:
                 trans_input.append(key)
@@ -166,7 +168,7 @@ class Node:
         my_trans.signature = Wallet.sign_transaction(self.wallet, my_trans)
         message = {'transaction': my_trans.to_json()}
         self.broadcast_transaction(message)
-        self.verify_signature(dict(my_trans.to_od()),my_trans.signature,self.public)
+        self.validate_transaction(dict(my_trans.to_od()),my_trans.signature,self.public)
         return my_trans
 
     def broadcast_transaction(self, message):
@@ -184,16 +186,49 @@ class Node:
                     print('Success on broadcasting transaction on node:', address)
 
     def validate_transaction(self, transaction, signature, sender):
-        # Use of signature and NBCs balance
-        if self.verify_signature(transaction, signature, sender):
-            # and # ifxo o utk
+        #if I am not the bootstrap I dont have a blockchain
+        if self.blockchain == None: 
+            self.blockchain = Blockchain(self.ring)
+        #check signature and value of the transaction
+        if self.verify_value(transaction) and self.verify_signature(transaction, signature, sender):
+            #add to list of transactions
+            self.pending_transactions.append(transaction)
+            #if I have reached my capacity it's time to create new block and mine it
+            if len(self.pending_transactions)>=capacity:
+                new_block_index = len(self.blockchain.blocks)
+                previous_hash = self.blockchain.blocks[new_block_index-1].current_hash
+                nonce=0
+                self.new_block = Block(new_block_index, self.pending_transactions[:capacity], nonce, previous_hash)
+                self.blockchain.add_block(self.new_block)
+                mine_thread = Thread(target = self.blockchain.mine_block, args =(difficulty, lambda : self.mining))
+                mine_thread.start()
             return True
         else:
             print('Error on validating')
             return False
 
+    def verify_value(self,trans):
+        #check that the utxos of the sender are enough to create this transaction and he is not cheating
+        id_sender = trans["node_id"]
+        amount = trans["amount"]
+        to_be_checked = trans["transaction_inputs"]
+        available_money = 0
+        if id_sender==self.id:
+            unspent_transactions = [(k, v) for k, v in self.wallet.utxos.items()] 
+        else:
+            unspent_transactions = self.wallet.others_utxos[id_sender]
+        for unspent in unspent_transactions:
+            if unspent[0] in to_be_checked:
+                available_money+=unspent[1]
+        if available_money>=amount:
+            return True
+        else:
+            return False
+
     def verify_signature(self, trans, signature, pub_key):
+        #verify the signature of the sender
         sign = PKCS1_v1_5.new(pub_key)
+        #transform the json/dictionary to ordered dictionary format so that we have the same hash
         to_test= OrderedDict([
             ('sender_address', trans["sender_address"]),
             ('receiver_address', trans["receiver_address"]),
@@ -201,24 +236,30 @@ class Node:
             ('transaction_id', trans["transaction_id"]),
             ('transaction_inputs', trans["transaction_inputs"]),
             ('transaction_outputs', trans["transaction_outputs"]),
-            ("signature","")])
+            ("signature",""),
+            ("change",trans["change"]),
+            ("node_id",trans["node_id"])])
         to_test = json.dumps(to_test, default=str)
         h = SHA.new(to_test.encode('utf8'))
         public_key = RSA.importKey(pub_key)
         sign_to_test = PKCS1_v1_5.new(public_key)
         if sign_to_test.verify(h,b64decode(trans["signature"])):
+            #the value is already checked on validate_transaction so it's time to update the utxos of others so we can keep track
             self.update_utxos(trans,self.wallet)
             return True
         return
 
     def update_utxos(self,trans, portofoli):
+        #state variables to check wheter I was involved in the transaction
         i_got_money = False
         i_got_change = False
+        #find the sender and the receiver id from the ring
         for node in self.ring:
                 if node["public_key"]==trans["receiver_address"]:   
                     id_receiver = "id"+str(node["id"])
                 if node["public_key"]==trans["sender_address"]:
                     id_sender = "id"+str(node["id"])
+        #check wheter I have created a key in the dictionary for the ones in the current transaction
         if id_receiver!=self.id:
              try:
                 portofoli.others_utxos[id_receiver]
@@ -230,16 +271,18 @@ class Node:
              except:
                 portofoli.others_utxos[id_sender]=[]
 
+        #If I was the one getting money upgrade my utxos
         if trans["receiver_address"]==self.public:
             portofoli.utxos[list(trans["transaction_outputs"][0].keys())[0]]=trans["transaction_outputs"][0][list(trans["transaction_outputs"][0].keys())[0]][1]
             i_got_money = True
+        #If I was the one sending money delete the utxos that I used from wallet and if I am expecting change create a new utxo with the change    
         if trans["sender_address"]==self.public:
             for utxos_spend in trans["transaction_inputs"]:
                 del portofoli.utxos[utxos_spend]
             if trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]>0:
                 portofoli.utxos[list(trans["transaction_outputs"][1].keys())[0]]=trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]
             i_got_change = True
-        
+        #Again if I was the one that got money I have to fix the utxos of the sender 
         if i_got_money:
             items_to_remove = []
             for item in portofoli.others_utxos[id_sender]:
@@ -251,6 +294,7 @@ class Node:
                 portofoli.others_utxos[id_sender].append((list(trans["transaction_outputs"][1].keys())[0],
                                                                             trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]))
         
+        #if I get change, i.e. I spend more utxos than the value I wanted to send, I have to upgrade my utxos
         elif i_got_change:
              for node in self.ring:
                 if node["public_key"]==trans["receiver_address"]:   
@@ -258,7 +302,7 @@ class Node:
                     break
             
              portofoli.others_utxos[id_receiver].append((list(trans["transaction_outputs"][0].keys())[0],trans["transaction_outputs"][0][list(trans["transaction_outputs"][0].keys())[0]][1]))
-            
+        #the last case is that I did not participate in this transaction so I have to upgrade the utxos of the sender and the receiver, mind that for the sender I must delete the inputs of the transaction and create new utxo if he got change    
         else:
             portofoli.others_utxos[id_receiver].append((list(trans["transaction_outputs"][0].keys())[0],trans["transaction_outputs"][0][list(trans["transaction_outputs"][0].keys())[0]][1]))
             items_to_remove = []
@@ -271,8 +315,7 @@ class Node:
             if trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]>0:
                 portofoli.others_utxos[id_sender].append((list(trans["transaction_outputs"][1].keys())[0],
                                                                             trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]))
-        print(portofoli.wallet_balance())
-        print(portofoli.others_utxos)
+        return
 
 
     def create_new_block(self, previous_hash, nonce):

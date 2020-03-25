@@ -43,7 +43,6 @@ class Transaction:
             ('transaction_inputs', self.transaction_inputs),
             ('transaction_outputs', self.transaction_outputs),
             ('signature', self.signature),
-            ('wallet', self.wallet),
             ('change', self.change),
             ('node_id', self.node_id),
         ])

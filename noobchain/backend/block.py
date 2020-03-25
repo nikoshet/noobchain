@@ -20,12 +20,28 @@ class Block:
         od = OrderedDict([
             ('index', self.index),
             ('timestamp', self.timestamp),
-            ('transactions', ([trans.to_od() for trans in self.transactions])),
+            ('transactions', ([self.trans_to_od(trans) for trans in self.transactions])),
             ('nonce', self.nonce),
             ('previous_hash', self.previous_hash)
         ])
 
         return od
+        
+    def trans_to_od(self, trans):
+        try:
+            to_od= OrderedDict([
+            ('sender_address', trans["sender_address"]),
+            ('receiver_address', trans["receiver_address"]),
+            ('amount', trans["amount"]),
+            ('transaction_id', trans["transaction_id"]),
+            ('transaction_inputs', trans["transaction_inputs"]),
+            ('transaction_outputs', trans["transaction_outputs"]),
+            ("signature",trans["signature"]),
+            ("change",trans["change"]),
+            ("node_id",trans["node_id"])])
+        except:
+            to_od = trans.to_od()
+        return to_od
 
     def to_json(self):
         # Convert object to json

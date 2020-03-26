@@ -114,7 +114,7 @@
             if (value%1===0){
 
                 $.ajax({
-                  url: '{{ data['ADDRESS'] }}' + "/transactions/create",
+                  url: '{{ data['ADDRESS'] }}' + "/transactions/create/frontend",
                   type: "POST",
                   headers: {'Access-Control-Allow-Origin':'*'},
                   dataType : 'json',

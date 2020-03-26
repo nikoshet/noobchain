@@ -71,7 +71,7 @@ def get_transactions():
     return render_template("view_last_transactions.html")
 
 # Create a transaction on frontend
-@app.route('/transactions/create/frontend', methods=['POST'])
+@app.route('/transactions/create/browser', methods=['POST'])
 def create_browser_transaction():
     sender = request.form['sender_address']
     receiver = request.form['receiver_address']
@@ -82,7 +82,7 @@ def create_browser_transaction():
 
 # Create a transaction
 @app.route('/transactions/create', methods=['POST'])
-def create_browser_transaction():
+def create_transaction():
     trans = json.loads(request.get_json())
     sender = trans['sender_address']
     receiver = trans['receiver_address']

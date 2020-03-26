@@ -5,16 +5,16 @@ import requests
 from collections import OrderedDict
 from hashlib import sha256
 import json
-import backend.node
+import time
 
 class Blockchain:
-    def __init__(self, ring):
+    def __init__(self, ring,my_id):
 
         self.ring = ring  # List of ring nodes
 
         # Genesis block
         self.genesis = Block(index=0, previous_hash=1, transactions=[], nonce=0)
-
+        self.my_id = my_id
         # Genesis transaction
         transaction = Transaction(sender_address="0", receiver_address=self.ring[0]['public_key'], amount=500,
                                   transaction_inputs='', wallet=None, ids="id0", genesis=True)
@@ -22,8 +22,6 @@ class Blockchain:
         self.genesis.transactions.append(transaction)
         self.genesis.timestamp=0
         self.genesis.current_hash = self.genesis.get_hash()
-        print(self.genesis.to_od())
-        print(self.genesis.current_hash)
 
         self.blocks = [self.genesis]  # List of added blocks (aka chain)
 
@@ -43,13 +41,11 @@ class Blockchain:
 
         return self
 
-    def mine_block(self, difficulty, continue_mine):
+    def mine_block(self, block, difficulty, continue_mine):
 
-        # grab hash of latest block in the chain
-        #prev_hash = self.blocks[-1].get_hash_obj()
         #We mine the whole block until the conditions are met or we get the block from another user
         nonce = 0
-        block_to_mine = self.blocks[-1]
+        block_to_mine = block
         # update hash
         block_hash = block_to_mine.get_hash_obj()
         # try new hashes until first n characters are 0
@@ -59,54 +55,70 @@ class Blockchain:
             nonce += 1
             block_to_mine.nonce = nonce
 
-        # update with new calculate hash
-        self.blocks[-1].current_hash = block_hash.hexdigest()
-        self.blocks[-1].nonce = nonce
-        self.broadcast_block(self.blocks[-1])
-
+        # update with new calculated hash
+        if continue_mine():
+            print("I GOT A BLOCK")
+            block_to_mine.current_hash = block_hash.hexdigest()
+            block_to_mine.nonce = nonce - 1
+            self.broadcast_block(block_to_mine)
         return
 
     def broadcast_block(self, block):
         # Actually post it at http://{address}/broadcast/block
         for member in self.ring:
-            url = f'{member.get("address")}/broadcast/block/'
-            response = requests.post(url, block.to_json())
-            if response.status_code == 400 or response.status_code == 500:
-                print('Block declined, needs resolving')
-            if response.status_code == 409:
-                self.resolve = True
+            if self.my_id!="id"+str(member.get("id")): #Don't send it to myself
+                url = f'{member.get("address")}/broadcast/block'
+                print(url)
+                response = requests.post(url, json=block.to_json())
+                if response.status_code == 400 or response.status_code == 500:
+                    print('Block declined, needs resolving')
+                if response.status_code == 409:
+                    self.resolve = True
+        for member in self.ring: #send it to my self, remember everyone is equal
+            if self.my_id=="id"+str(member.get("id")): 
+                url = f'{member.get("address")}/broadcast/block'
+                response = requests.post(url, json=block.to_json())
+                if response.status_code == 400 or response.status_code == 500:
+                    print('Block declined, needs resolving')
+                if response.status_code == 409:
+                    self.resolve = True
 
         return self
 
     def resolve_conflict(self):
 
         for member in self.ring:
-            # Request chain from nodes
-            new_blocks = requests.get(f'http://{member.get("address")}/chain').json()
+            if self.my_id!="id"+str(member.get("id")): #This time we do really care about the others and not ourself
+                # Request chain from nodes
+                new_blocks = requests.get(f'{member.get("address")}/chain').json()
 
-            # Build it using json
-            # Change this when classes are finalised
-            # Replace wallet
-            # Generate correct blocks in order to replace ones in the chain
-            blocks = [
-                Block(index=block["index"], transactions=[
-                    Transaction(sender_address=t["sender_address"], receiver_address=t["receiver_address"],
-                                amount=t["amount"], transaction_inputs=t["transaction_inputs"],
-                                wallet=t["wallet"], ids=t["node_id"]) for t in block["transactions"]
-                ],
-                      nonce=block["nonce"], previous_hash=block["previous_hash"], timestamp=block["timestamp"]) for
-                block in
-                new_blocks["blockchain"]
-            ]
+                # Generate correct blocks in order to replace ones in the chain
+                new_blocks = json.loads(new_blocks)
+                tmp_blocks = new_blocks["blockchain"]
+                tmp_blockchain = []
+                #parse the json block to an actual block item
+                for block in tmp_blockchain:
+                    transactions = []
+                    for trans in block["transactions"]:
+                        sender_address = trans["sender_address"]
+                        receiver_address = trans["receiver_address"]
+                        amount = trans["amount"]
+                        transaction_id = trans["transaction_id"]
+                        transaction_inputs = trans["transaction_inputs"]
+                        signature = trans["signature"]
+                        node_id = trans["node_id"]
+                        transaction = Transaction(sender_address,receiver_address, amount, transaction_inputs, None,node_id)
+                        trnsaction.signature = signature
+                        transactions.append(transaction.to_od())
+                    block = Block(block["index"],transactions,block["nonce"],block["previous_hash"],block["timestamp"])
+                    tmp_blockchain.append(block)
 
-            print(f'\nCollected chain {new_blocks}\n')
-            # If bigger is to be found, replace existing chain
-            if len(new_blocks) > len(self.blocks) and self.validate_chain(new_blocks):
-                self.blocks = blocks
+                print(f'\nCollected chain\n')
+                # If bigger is to be found, replace existing chain
+                if len(tmp_blockchain) > len(self.blocks) and self.validate_chain(tmp_blockchain):
+                    self.blocks = blocks
 
-        self.resolve = False
-
-        return self
+        return 
 
     def to_od(self):
         od = OrderedDict([
@@ -124,12 +136,15 @@ class Blockchain:
 
 # ---------------------------------------------- VERIFICATION FUNCTIONS ----------------------------------------------
 
-    def validate_block(self, block):
-
-        if block.current_hash != block.get_hash():
+    def validate_block(self, block, difficulty):
+        #check the proof of work
+        if  difficulty *"0" != block.get_hash_obj().hexdigest()[:difficulty]:
+            print(block.get_hash_obj().hexdigest())
+            print("I failed the nonce test")
             return False
-
+        #check tha it sticks to our chain
         if self.blocks[-1].current_hash != block.previous_hash:
+            print("I failed the previous hash test")
             return False
 
         return True

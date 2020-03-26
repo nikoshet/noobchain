@@ -14,6 +14,7 @@ from backend.blockchain import Blockchain
 from backend.transaction import Transaction
 from collections import OrderedDict
 from base64 import b64decode
+from copy import deepcopy
 
 # from noobchain.main import capacity, difficulty
 
@@ -21,7 +22,6 @@ import binascii
 
 capacity = 1
 difficulty = 4
-
 
 class Node:
 
@@ -53,9 +53,7 @@ class Node:
         if self.is_bootstrap:
             self.id = 'id0'
             self.wallet.utxos["id00"]=500
-            #print(self.wallet.utxos)
-            #self.create_genesis_block()
-            self.blockchain = Blockchain(self.ring)
+            self.blockchain = Blockchain(self.ring,self.id)
 
         else:
             self.wallet.others_utxos["id0"] = [("id00", 500)]
@@ -154,6 +152,17 @@ class Node:
                     print('Error:',req.status_code)
                 else:
                     print('Successful registration on bootstrap node from node:', address)
+        #lastly broadcast it to ourselves because we want to have the same json, just to be sure
+        for member in self.ring:
+            address = member.get('address')
+            if address == self.address:
+                req = requests.post(address + "/broadcast/ring", json=json.dumps(self.ring))
+                if not req.status_code == 200:
+                    #print(req.text)
+                    print('Error:',req.status_code)
+                else:
+                    print('Successful registration on bootstrap node from node:', address)
+        
 
     ### Transaction functions ###
 
@@ -168,7 +177,6 @@ class Node:
         my_trans.signature = Wallet.sign_transaction(self.wallet, my_trans)
         message = {'transaction': my_trans.to_json()}
         self.broadcast_transaction(message)
-        self.validate_transaction(dict(my_trans.to_od()),my_trans.signature,self.public)
         return my_trans
 
     def broadcast_transaction(self, message):
@@ -184,28 +192,56 @@ class Node:
                     print('Error:',req.status_code)
                 else:
                     print('Success on broadcasting transaction on node:', address)
+        #also broadcast it to ourselves because we have the object and we want the json, we are leveling everything between the boot and the nodes
+        for member in self.ring:
+            address = member.get('address')
+            if address == self.address:
+                # Post request
+                # send to ring.sender
+                req = requests.post(address + "/broadcast/transaction", json=json.dumps(message))# data=jsonify(message))
+                if not req.status_code == 200:
+                    print('Error:',req.status_code)
+                else:
+                    print('Success on broadcasting transaction on node:', address)
 
     def validate_transaction(self, transaction, signature, sender):
+        #parse the transaction to ordered dictionary
+        transaction= OrderedDict([
+            ('sender_address', transaction["sender_address"]),
+            ('receiver_address', transaction["receiver_address"]),
+            ('amount', transaction["amount"]),
+            ('transaction_id', transaction["transaction_id"]),
+            ('transaction_inputs', transaction["transaction_inputs"]),
+            ('transaction_outputs', transaction["transaction_outputs"]),
+            ("signature",transaction["signature"]),
+            ("change",transaction["change"]),
+            ("node_id",transaction["node_id"])])
         #if I am not the bootstrap I dont have a blockchain
         if self.blockchain == None: 
-            self.blockchain = Blockchain(self.ring)
+            self.blockchain = Blockchain(self.ring, self.id)
         #check signature and value of the transaction
-        if self.verify_value(transaction) and self.verify_signature(transaction, signature, sender):
+        if self.verify_value(transaction) and self.verify_signature(transaction, sender):
             #add to list of transactions
             self.pending_transactions.append(transaction)
             #if I have reached my capacity it's time to create new block and mine it
             if len(self.pending_transactions)>=capacity:
-                new_block_index = len(self.blockchain.blocks)
-                previous_hash = self.blockchain.blocks[new_block_index-1].current_hash
-                nonce=0
-                self.new_block = Block(new_block_index, self.pending_transactions[:capacity], nonce, previous_hash)
-                self.blockchain.add_block(self.new_block)
-                mine_thread = Thread(target = self.blockchain.mine_block, args =(difficulty, lambda : self.mining))
-                mine_thread.start()
+                self.mine_new_block()
             return True
         else:
             print('Error on validating')
             return False
+
+
+    def mine_new_block(self):
+        #create the new block and start mining it
+        self.mining = True
+        new_block_index = len(self.blockchain.blocks)
+        previous_hash = self.blockchain.blocks[new_block_index-1].current_hash
+        nonce=0
+        self.new_block = Block(new_block_index, self.pending_transactions[:capacity], nonce, previous_hash)
+        mine_thread = Thread(target = self.blockchain.mine_block, args =(self.new_block, difficulty, lambda : self.mining))#nice lambda trick its a way to kill the mining thread
+        mine_thread.start()
+        return
 
     def verify_value(self,trans):
         #check that the utxos of the sender are enough to create this transaction and he is not cheating
@@ -225,20 +261,12 @@ class Node:
         else:
             return False
 
-    def verify_signature(self, trans, signature, pub_key):
+    def verify_signature(self, trans, pub_key):
         #verify the signature of the sender
         sign = PKCS1_v1_5.new(pub_key)
         #transform the json/dictionary to ordered dictionary format so that we have the same hash
-        to_test= OrderedDict([
-            ('sender_address', trans["sender_address"]),
-            ('receiver_address', trans["receiver_address"]),
-            ('amount', trans["amount"]),
-            ('transaction_id', trans["transaction_id"]),
-            ('transaction_inputs', trans["transaction_inputs"]),
-            ('transaction_outputs', trans["transaction_outputs"]),
-            ("signature",""),
-            ("change",trans["change"]),
-            ("node_id",trans["node_id"])])
+        to_test= deepcopy(trans)
+        to_test["signature"] = ""
         to_test = json.dumps(to_test, default=str)
         h = SHA.new(to_test.encode('utf8'))
         public_key = RSA.importKey(pub_key)
@@ -337,6 +365,31 @@ class Node:
         # return True
 
 
-    def valid_proof(self):
-        MINING_DIFFICULTY = difficulty
-        return True
+    def valid_block(self, block):
+        #Transform the json to block object
+        block_index = block["index"]
+        block_timestamp = block["timestamp"]
+        block_transactions = block["transactions"]
+        block_nonce = block["nonce"]
+        block_previous_hash = block["previous_hash"]
+        block_to_test = Block(block_index, block_transactions, block_nonce, block_previous_hash, block_timestamp)
+        #verify the new block we got
+        if self.blockchain.validate_block(block_to_test, difficulty):
+            self.mining = False
+            block_to_test.current_hash = block_to_test.get_hash_obj().hexdigest()
+            transactions_ids_in_block = []
+            #which transactions are in the block?
+            for i in range(len(block_to_test.transactions)):
+                transactions_ids_in_block.append(block_to_test.transactions[i]["transaction_id"])
+            #remove these transactions from our pending block
+            self.pending_transactions = [i for i in self.pending_transactions if not(i["transaction_id"] in transactions_ids_in_block)]
+            #add the confirmed block tou our chain
+            self.blockchain.add_block(block_to_test)
+        #maybe we have the wrong blockchain?
+        else:
+            self.blockchain.resolve_conflict()
+        print(self.blockchain)
+        #keep the dream alive
+        if len(self.pending_transactions)!=0:
+            self.mine_new_block()
+        return

@@ -13,13 +13,13 @@ from backend.blockchain import Blockchain
 #from views import layout_views, blockchain_views
 from flask_cors import CORS
 
+
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sec_key'
 app.config['DEBUG'] = False
 CORS(app)
 
 app.config["CACHE_TYPE"] = "null"
-
 
 # Arguments
 parser = ArgumentParser()
@@ -59,6 +59,12 @@ new_node = Node(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_node
 #----------------------------------------------------------------------#
 
 # View last transactions in the backend
+#respond with our chain to resolve conflicts
+@app.route('/chain', methods=['GET'])
+def send_chain():
+    chain = new_node.blockchain.to_json()
+    return jsonify(chain), 200
+
 @app.route('/transactions/view', methods=['GET'])
 def get_transactions():
     # transactions = Blockchain.transactions
@@ -103,43 +109,10 @@ def broadcast_ring():
 # Broadcast block to other nodes
 @app.route('/broadcast/block', methods=['POST'])
 def broadcast_block():
-    '''
-    Post to http://127.0.0.1:5000/broadcast/block/ as json, the following
-    {
-    "index": 1,
-    "timestamp": 1584806317.2038882,
-    "transactions": [
-        {
-            "sender_address": "sender_public_key",
-            "receiver_address": "receiver_public_key",
-            "amount": 5,
-            "transaction_id": 0,
-            "transaction_inputs": 0,
-            "transaction_outputs": "{1, (4, 1)}",
-            "signature": ""
-        },
-        {
-            "sender_address": "sender_public_key",
-            "receiver_address": "receiver_public_key",
-            "amount": 5,
-            "transaction_id": 1,
-            "transaction_inputs": 0,
-            "transaction_outputs": "{1, (4, 1)}",
-            "signature": ""
-        }
-    ],
-    "nonce": 0,
-    "current_hash": null
-    }
-    '''
     # get json post
-    data = request.get_json()
-
-    # Convert back to ordered dictionary
-    #data = json.loads(data, object_pairs_hook=OrderedDict)
-    print(f'Received: {data}')
+    block = json.loads(request.get_json())
     response = 0
-    raise NotImplementedError
+    Thread(target=new_node.valid_block(block)).start()
     return jsonify(response), 200
 
 # Register node to bootstrap ring
@@ -207,16 +180,18 @@ def contact():
 
 ##############################################################################################
 # Function to read file for transactions
-def read_file(node):
+def read_file():
     print("Reading file for transactions")
-    f = open("transactions/transactions" + str(node.id) + ".txt", "r")
-    for j in range(10):
+    f = open("./transactions/trans" + str(new_node.id)[-1] + ".txt", "r")
+    for j in range(5):
         node_id, value = (f.readline()).split()
-        for other_node in node.ring:
-            if int(other_node['id']) != int(node_id):
-                node.create_transaction(node.wallet.public_key, node.wallet.private_key, int(value))
+        for nodes in new_node.ring:
+            if nodes["id"] == node_id[2:]:
+                receiver = nodes["public_key"]
+                break    
+        new_node.create_transaction(new_node.public ,receiver, int(value))
                 #break
-
+    return
 
 # Function for node
 #def start_new_node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes):
@@ -241,7 +216,7 @@ if __name__ == '__main__':
     #time.sleep(1)
     # Start Flask app
     from waitress import serve
-    serve(app, host=HOST, port=PORT) #, debug=True, use_reloader=False)
+    serve(app, host=HOST, port=PORT, threads=5)#, debug=True, use_reloader=False)
     #app.run(host=HOST, port=PORT, debug=False, use_reloader=False) #True
     #time.sleep(3)
 

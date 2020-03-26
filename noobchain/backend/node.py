@@ -277,8 +277,6 @@ class Node:
         if sign_to_test.verify(h,b64decode(trans["signature"])):
             #the value is already checked on validate_transaction so it's time to update the utxos of others so we can keep track
             self.update_utxos(trans,self.wallet)
-            print(self.wallet.utxos)
-            print(self.wallet.others_utxos)
             return True
         print("Wrong signature")
         return False

@@ -96,7 +96,7 @@ def create_transaction():
 
 # Broadcast transaction
 @app.route('/broadcast/transaction', methods=['POST'])
-def create_transaction():
+def broadcast_transaction():
     message = json.loads(request.get_json())
     transaction = json.loads(message.get('transaction'))
     signature = transaction.get('signature')

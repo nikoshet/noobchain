@@ -172,7 +172,7 @@ class Node:
         for key, available in self.wallet.utxos.items():
             if tmp<value:
                 trans_input.append(key)
-                tmp+=value
+                tmp+=available
         my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address,amount=value, transaction_inputs=trans_input,wallet=self.wallet,ids=self.id)
         my_trans.signature = Wallet.sign_transaction(self.wallet, my_trans)
         message = {'transaction': my_trans.to_json()}
@@ -259,6 +259,9 @@ class Node:
         if available_money>=amount:
             return True
         else:
+            print(amount)
+            print("Not Enogh UTXOS")
+            print(available_money)
             return False
 
     def verify_signature(self, trans, pub_key):
@@ -274,8 +277,11 @@ class Node:
         if sign_to_test.verify(h,b64decode(trans["signature"])):
             #the value is already checked on validate_transaction so it's time to update the utxos of others so we can keep track
             self.update_utxos(trans,self.wallet)
+            print(self.wallet.utxos)
+            print(self.wallet.others_utxos)
             return True
-        return
+        print("Wrong signature")
+        return False
 
     def update_utxos(self,trans, portofoli):
         #state variables to check wheter I was involved in the transaction

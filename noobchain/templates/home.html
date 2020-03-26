@@ -1,49 +1,151 @@
 {% extends 'layout/base.html' %}
 
 {% block content %}
-    <div class="jumbotron">
-        <h1 class="display-3">Welcome to Noobchain!</h1>
-        <h5 class="display-5">Your ip address is {{ session['HOST'] }} and you are using
-            port {{ session['PORT'] }}.</h5>
+    <div class="row">
+        <div class="col-1"></div>
+        <div class="col-10">
+            <div class="jumbotron">
+                <h1 class="display-3">Welcome to Noobchain!</h1>
+                <h5 class="display-5">Currently there are {{ data['NO_OF_NODES'] }} node(s) connected on Noobchain network.</h5>
+                <br>
+                <h5 class="display-5">Your IP address is :</h5> <div id="ip_address">{{ data['ADDRESS'] }}</div>.
+                <h5 class="display-5">Your sender address is :</h5> {{ data['PUB_KEY'] }}.
 
-        <p style="margin-top:1cm;"></p>
-        <div class="row">
-            <div class="col s4">
-                <form>
-                    <fieldset>
-                        <h5 class="display-5">Make a payment now</h5>
-                        <div class="form-group">
-                            <label for="sendIp">IP to deliver coins</label>
-                            <input type="password" class="form-control" id="sendIp" placeholder="0.0.0.0">
+                <p style="margin-top:1cm;"></p>
+                <div class="row">
+                    <div class="col s4">
+                        <form id="transaction_form">
+                            <!-- <fieldset>-->
+                                <h5 class="display-5">Create a transaction now!</h5>
+                                <div class="form-group">
+                                    <label for="sender_address">Type your sender address</label>
+                                    <input type="text" class="form-control" id="sender_address" name="sender_address"><!-- placeholder="0.0.0.0">-->
+                                </div>
+                                <div class="form-group">
+                                    <label for="receiver_address">Type the receiver address</label>
+                                    <input type="text" class="form-control" id="receiver_address" name="receiver_address"><!-- placeholder="0.0.0.0">-->
+                                </div>
+                                <div class="form-group">
+                                    <label for="amount">Type the amount of NBCs</label>
+                                    <input type="text" class="form-control" id="amount" placeholder="e.g. 5" name="amount">
+                                </div>
+                                <button id="create_transaction" class="btn btn-primary">Submit</button>
+                            <!-- </fieldset>-->
+                        </form>
+
+                        <p style="margin-bottom:2cm;"></p>
+
+                    </div>
+                    <div class="col s4"></div>
+                    <div class="col s4">
+
+                        <div class="card border-secondary mb-4">
+                            <div class="card-header display-5"><h5 style="color:#fff">Your CPU / Memory Usage:</h5></div>
+                            <div class="card-body">
+                                <h4 class="card-title">Current CPU Usage: {{ data['CPU_PERCENT'] }} %.</h4>
+                                <h4 class="card-title">Current Memory Usage: {{ data['MEM_PERCENT'] }} %.</h4>
+                                <p class="card-text">Keep track of your system performance to avoid damage.</p>
+                                <button class="btn btn-primary" type="button"
+                                        onclick="window.location.href='{{ url_for('.wallet') }}';">See your Wallet
+                                </button>
+                            </div>
+
                         </div>
-                        <div class="form-group">
-                            <label for="sendAmount">Amount</label>
-                            <input type="password" class="form-control" id="sendAmount" placeholder="30">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </fieldset>
-                </form>
-
-                <p style="margin-bottom:2cm;"></p>
-
-            </div>
-            <div class="col s4"></div>
-            <div class="col s4">
-
-                <div class="card border-secondary mb-4">
-                    <div class="card-header">Start Mining</div>
-                    <div class="card-body">
-                        <h4 class="card-title">Current CPU Usage: {{ data['CPU_PERCENT'] }} %.</h4>
-                        <h4 class="card-title">Current Memory Usage: {{ data['MEM_PERCENT'] }} %.</h4>
-                        <p class="card-text">Keep track of your system performance to avoid damage.</p>
-                        <button class="btn btn-primary" type="button"
-                                onclick="window.location.href='{{ url_for('.profile') }}';">Mine
-                        </button>
                     </div>
 
                 </div>
             </div>
-
         </div>
+        <div class="col-1"></div>
     </div>
+
+    <!-- Alert Message for successful transaction -->
+    <div class="modal modal-alert fade" id="success_transaction_modal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-success" role="alert">
+              <h4 class="alert-heading">Successful Transaction!</h4>
+              <p>You successfully completed your transaction. It will be added to a block.</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="button_confirm_transaction" class="btn btn-success" data-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Alert Message for error transaction -->
+    <div class="modal modal-alert fade" id="error_transaction_modal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-danger" role="alert">
+              <h4 class="alert-heading">Error on Transaction!</h4>
+              <p>An error occured. Please try again.</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="error_confirm_transaction" class="btn btn-danger" data-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- Bootstrap/Jquery core JavaScript -->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/main.js"></script>
+    <script>
+        $("#create_transaction").click(function (e) {
+            e.preventDefault();
+            value = document.getElementById("amount").value
+            // Check if value is integer
+            if (value%1===0){
+
+                $.ajax({
+                  url: '{{ data['ADDRESS'] }}' + "/transactions/create",
+                  type: "POST",
+                  headers: {'Access-Control-Allow-Origin':'*'},
+                  dataType : 'json',
+                  data: $('#transaction_form').serialize(),
+                  success: function(response){
+                    console.log(data);
+                    //reset form
+                    $("#transaction_form")[0].reset();
+
+                    //clean text boxes
+                    $("#sender_address").val("");
+                    $("#receiver_address").val("");
+                    $("#amount").val("");
+
+                    $("#success_transaction_modal").modal('show');
+
+                  },
+                  error: function(error){
+                    $("#error_transaction_modal").modal('show');
+                    console.log('Transaction error');
+                  }
+                });
+            }
+            else{
+                alert('Please enter an integer value for amount of NBCs.');
+                }
+
+         });
+
+
+
+    </script>
+
 {% endblock %}

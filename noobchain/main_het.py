@@ -27,7 +27,7 @@ parser.add_argument('-bootstrap', default='True', type=str, help='is node bootst
 parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
 #parser.add_argument('-ip_bootstrap', default='127.0.0.1', type=str, help='ip of bootstrap')
 parser.add_argument('-port_bootstrap', default=1000, type=int, help='port of bootstrap')
-parser.add_argument('-nodes', default=2, type=int, help='number of nodes')
+parser.add_argument('-nodes', default=5, type=int, help='number of nodes')
 parser.add_argument('-cap', default=2, type=int, help='capacity of blocks')
 parser.add_argument('-dif', default=4, type=int, help='difficulty')
 #args = parser.parse_args()
@@ -50,7 +50,7 @@ difficulty = args.dif
 
 
 
-new_node = Node(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes)
+new_node = Node(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes, capacity, difficulty)
 
 ##############################################################################################
 #----------------------------------------------------------------------#
@@ -114,6 +114,8 @@ def broadcast_ring():
     message = request.get_json()
     #print(message)
     new_node.ring = json.loads(message)
+    for node in new_node.ring:
+        if node["public_key"]==new_node.public: new_node.id="id"+str(node["id"])
     response = 'success'
     return jsonify(response), 200
 
@@ -239,18 +241,28 @@ def contact():
 ##############################################################################################
 
 # Function to read file for transactions
-def read_file():
-    print("Reading file for transactions")
-    f = open("./transactions/trans" + str(new_node.id)[-1] + ".txt", "r")
-    for j in range(5):
+def read_file(node, number_of_nodes):
+    #print('Nop')
+    while len(node.ring) < number_of_nodes:
+        time.sleep(30)
+        print('Nop')
+        pass
+    print("Reading file of transactions!")
+    #print('\n\n\n\n',node.ring)
+    print("./transactions/trans" + str(node.id[2:]) + ".txt")
+    f = open("./transactions/trans" + str(node.id[2:]) + ".txt", "r")
+
+    for line in f:
+        time.sleep(1)
         node_id, value = (f.readline()).split()
-        for nodes in new_node.ring:
-            if nodes["id"] == node_id[2:]:
-                receiver = nodes["public_key"]
-                break    
-        new_node.create_transaction(new_node.public ,receiver, int(value))
-                #break
-    return
+        for nodes in node.ring:
+            if nodes.get('id') == node_id[2:]:
+                #print(nodes.get('id'))
+                receiver = nodes.get("public_key")
+                node.create_transaction(node.public, receiver, int(value))
+                #Thread(target = node.create_transaction, args = (node.public, receiver, int(value),)).start()
+                break
+    print('My transactions finished!')
 
 # .......................................................................................
 # Function for node
@@ -271,14 +283,20 @@ print(f'Inputs: {HOST}, {PORT}, {boot}, {ip_of_bootstrap}, {port_of_bootstrap}, 
     #serve(app, host=ip, port=port)
 
 if __name__ == '__main__':
+    # Read transactions file
+    read_treans_thread = Thread(target=read_file, args=(new_node, no_of_nodes))
+    read_treans_thread.start()
+
     #global new_node
     #new_node = Node(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes)
     #time.sleep(1)
     # Start Flask app
     from waitress import serve
-    serve(app, host=HOST, port=PORT) #, debug=True, use_reloader=False)
+    serve(app, host=HOST, port=PORT, threads=5) #, debug=True, use_reloader=False)
     #app.run(host=HOST, port=PORT, debug=False, use_reloader=False) #True
     #time.sleep(3)
 
     #t_app = Thread(target=start_new_flask_app, args=(HOST, PORT))
     #t_app.start()
+
+

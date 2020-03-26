@@ -16,16 +16,16 @@ from collections import OrderedDict
 from base64 import b64decode
 from copy import deepcopy
 
-# from noobchain.main import capacity, difficulty
+#from main import capacity, difficulty
 
 import binascii
 
-capacity = 1
-difficulty = 4
+#capacity = 1
+#difficulty = 4
 
 class Node:
 
-    def __init__(self, ip, port, is_bootstrap, ip_of_bootstrap, port_of_bootstrap, no_of_nodes):
+    def __init__(self, ip, port, is_bootstrap, ip_of_bootstrap, port_of_bootstrap, no_of_nodes, capacity, difficulty):
 
         self.ip = ip
         self.port = port
@@ -47,7 +47,11 @@ class Node:
         self.new_block = None
         self.trans = ''
         self.mining=True
-        # Check if node2 is bootstrap
+
+        self.capacity = capacity
+        self.difficulty = difficulty
+
+        # Check if node is bootstrap
         self.is_bootstrap = is_bootstrap
 
         if self.is_bootstrap:
@@ -60,12 +64,9 @@ class Node:
 
             # Not sure about the runtime of this thread, uncomment
             Thread(target=self.register_on_bootstrap).start()
-
             #self.register_on_bootstrap()
 
-        
 
-        # self.start(ip, port, ip_of_bootstrap, port_of_bootstrap)
 
     def __str__(self):
         return f'------ PRINTING DETAILS FOR USER: [{self.ip}] ------' \
@@ -224,7 +225,7 @@ class Node:
             #add to list of transactions
             self.pending_transactions.append(transaction)
             #if I have reached my capacity it's time to create new block and mine it
-            if len(self.pending_transactions)>=capacity:
+            if len(self.pending_transactions)>=self.capacity:
                 self.mine_new_block()
             return True
         else:
@@ -238,8 +239,8 @@ class Node:
         new_block_index = len(self.blockchain.blocks)
         previous_hash = self.blockchain.blocks[new_block_index-1].current_hash
         nonce=0
-        self.new_block = Block(new_block_index, self.pending_transactions[:capacity], nonce, previous_hash)
-        mine_thread = Thread(target = self.blockchain.mine_block, args =(self.new_block, difficulty, lambda : self.mining))#nice lambda trick its a way to kill the mining thread
+        self.new_block = Block(new_block_index, self.pending_transactions[:self.capacity], nonce, previous_hash)
+        mine_thread = Thread(target = self.blockchain.mine_block, args =(self.new_block, self.difficulty, lambda : self.mining))#nice lambda trick its a way to kill the mining thread
         mine_thread.start()
         return
 
@@ -260,7 +261,7 @@ class Node:
             return True
         else:
             print(amount)
-            print("Not Enogh UTXOS")
+            print("Not Enough UTXOS")
             print(available_money)
             return False
 
@@ -361,7 +362,7 @@ class Node:
         if len(self.blockchain.blocks) == 0:
             self.blockchain.mine_block(block)
         # if enough transactions mine
-        if len(self.new_block.transactions) == capacity:
+        if len(self.new_block.transactions) == self.capacity:
             self.blockchain.mine_block(block)
         # append transaction to block
         else:
@@ -378,7 +379,7 @@ class Node:
         block_previous_hash = block["previous_hash"]
         block_to_test = Block(block_index, block_transactions, block_nonce, block_previous_hash, block_timestamp)
         #verify the new block we got
-        if self.blockchain.validate_block(block_to_test, difficulty):
+        if self.blockchain.validate_block(block_to_test, self.difficulty):
             self.mining = False
             block_to_test.current_hash = block_to_test.get_hash_obj().hexdigest()
             transactions_ids_in_block = []

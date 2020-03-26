@@ -12,6 +12,7 @@ from backend.transaction import Transaction
 from backend.block import Block
 from backend.blockchain import Blockchain
 #from views import layout_views, blockchain_views
+from flask_cors import CORS
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sec_key'
@@ -51,8 +52,17 @@ difficulty = args.dif
 
 new_node = Node(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes)
 
-print(new_node.blockchain.__Node__)
 ##############################################################################################
+#----------------------------------------------------------------------#
+#---------------------- REST API FOR BACKEND ---------------------------#
+#----------------------------------------------------------------------#
+
+# Respond with our chain to resolve conflicts
+@app.route('/chain', methods=['GET'])
+def send_chain():
+    chain = new_node.blockchain.to_json()
+    return jsonify(chain), 200
+
 # View last transactions in the backend
 @app.route('/transactions/view', methods=['GET'])
 def get_transactions():
@@ -60,26 +70,43 @@ def get_transactions():
     response = 0  # {'transactions': transactions}
     return render_template("view_last_transactions.html")
 
-
-# Show balance
-@app.route('/show_balance', methods=['GET'])
-def show_balance():
-    # transactions = backend.transactions
-    response = 0  # {'transactions': transactions}
-    return render_template("show_balance.html")
-
+# Create a transaction on frontend
+@app.route('/transactions/create/frontend', methods=['POST'])
+def create_browser_transaction():
+    sender = request.form['sender_address']
+    receiver = request.form['receiver_address']
+    amount = request.form['amount']
+    trans = new_node.create_transaction(sender, receiver, int(amount))
+    response = 'success'
+    return jsonify(response), 200
 
 # Create a transaction
 @app.route('/transactions/create', methods=['POST'])
+def create_browser_transaction():
+    trans = json.loads(request.get_json())
+    sender = trans['sender_address']
+    receiver = trans['receiver_address']
+    amount = trans['amount']
+    for node in new_node.ring:
+        if node["id"]==sender[2:]: sender = node["public_key"]
+        if node["id"]==receiver[2:]: receiver = node["public_key"]
+    trans = new_node.create_transaction(sender, receiver, int(amount))
+    response = 'success'
+    return jsonify(response), 200
+
+# Broadcast transaction
+@app.route('/broadcast/transaction', methods=['POST'])
 def create_transaction():
     message = json.loads(request.get_json())
     transaction = json.loads(message.get('transaction'))
     signature = transaction.get('signature')
     sender = transaction.get('sender_address')
-    new_node.validate_transaction(transaction, signature, sender)
-    response = 'success'
-    return jsonify(response), 200
-
+    if new_node.validate_transaction(transaction, signature, sender):
+        response = 'success'
+        return jsonify(response), 200
+    else:
+        response = 'error'
+        return jsonify(response), 409
 
 # Broadcast node ring to other nodes
 @app.route('/broadcast/ring', methods=['POST'])
@@ -92,48 +119,12 @@ def broadcast_ring():
 
 
 # Broadcast block to other nodes
-#@app.route('/broadcast/block/<int:node_id>', methods=['POST'])
-#def broadcast_block(node_id):
 @app.route('/broadcast/block', methods=['POST'])
 def broadcast_block():
-    '''
-    Post to http://127.0.0.1:5000/broadcast/block/ as json, the following
-    {
-    "index": 1,
-    "timestamp": 1584806317.2038882,
-    "transactions": [
-        {
-            "sender_address": "sender_public_key",
-            "receiver_address": "receiver_public_key",
-            "amount": 5,
-            "transaction_id": 0,
-            "transaction_inputs": 0,
-            "transaction_outputs": "{1, (4, 1)}",
-            "signature": ""
-        },
-        {
-            "sender_address": "sender_public_key",
-            "receiver_address": "receiver_public_key",
-            "amount": 5,
-            "transaction_id": 1,
-            "transaction_inputs": 0,
-            "transaction_outputs": "{1, (4, 1)}",
-            "signature": ""
-        }
-    ],
-    "nonce": 0,
-    "current_hash": null
-    }
-    '''
-
     # get json post
-    data = request.get_json()
-
-    # Convert back to ordered dictionary
-    #data = json.loads(data, object_pairs_hook=OrderedDict)
-
-    print(f'Received: {data}')
+    block = json.loads(request.get_json())
     response = 0
+    Thread(target=new_node.valid_block(block)).start()
     return jsonify(response), 200
 
 # Register node to bootstrap ring
@@ -145,74 +136,87 @@ def register_node():
     response = 'success'
     return jsonify(response), 200
 
-# Get current node's version of chain
-@app.route('/receive/chain', methods=['GET'])
-def get_chain():
-    return jsonify(new_node.blockchain.to_json()), 200
+## Get current node's version of chain
+#@app.route('/receive/chain', methods=['GET'])
+#def get_chain():
+#    return jsonify(new_node.blockchain.to_json()), 200
 
-@app.route('/broadcast/chain', methods=['POST'])
-def post_chain():
-    # Test, turn json into object
-    data = json.loads(request.get_json())
-    print(f'Current blockchain {new_node.blockchain}')
-    print(f'Popping last block to notice change')
-    print(f'{new_node.blockchain.blocks.pop()}')
+#@app.route('/broadcast/chain', methods=['POST'])
+#def post_chain():
+#    # Test, turn json into object
+#    data = json.loads(request.get_json())
+#    print(f'Current blockchain {new_node.blockchain}')
+#    print(f'Popping last block to notice change')
+#    print(f'{new_node.blockchain.blocks.pop()}')
 
-    print(f'Trying to update blocks in blockchain')
+#    print(f'Trying to update blocks in blockchain')
 
     # Replace wallet
     # Generate correct blocks in order to replace ones in the chain
-    blocks = [
-        Block(index=block["index"], transactions=[
-            Transaction(sender_address=t["sender_address"], receiver_address=t["receiver_address"],
-                        amount=t["amount"], transaction_inputs=t["transaction_inputs"],
-                        wallet=t["wallet"], ids=t["node_id"]) for t in block["transactions"]
-        ],
-              nonce=block["nonce"], previous_hash=block["previous_hash"], timestamp=block["timestamp"]) for block in
-        data["blockchain"]
-    ]
+#    blocks = [
+#        Block(index=block["index"], transactions=[
+#            Transaction(sender_address=t["sender_address"], receiver_address=t["receiver_address"],
+#                        amount=t["amount"], transaction_inputs=t["transaction_inputs"],
+#                        wallet=t["wallet"], ids=t["node_id"]) for t in block["transactions"]
+#        ],
+#              nonce=block["nonce"], previous_hash=block["previous_hash"], timestamp=block["timestamp"]) for block in
+#        data["blockchain"]
+#    ]
 
-    new_node.blockchain.blocks = blocks
-    print(f'new blockchain {new_node.blockchain}')
+#    new_node.blockchain.blocks = blocks
+#    print(f'new blockchain {new_node.blockchain}')
 
-    return 'Chain successfully updated!', 201
+#    return 'Chain successfully updated!', 201
 
-# Get current wallet
-@app.route('/receive/wallet', methods=['GET'])
-def get_wallet():
-    return jsonify(new_node.wallet.to_json()), 200
+## Get current wallet
+#@app.route('/receive/wallet', methods=['GET'])
+#def get_wallet():
+#    return jsonify(new_node.wallet.to_json()), 200
 
-# Get current wallet
-@app.route('/broadcast/wallet', methods=['POST'])
-def post_wallet():
-    # Test, turn json into object
-    data = json.loads(request.get_json())
+## Get current wallet
+#@app.route('/broadcast/wallet', methods=['POST'])
+#def post_wallet():
+#    # Test, turn json into object
+#    data = json.loads(request.get_json())
 
-    print(data)
+#    print(data)
 
-    wallet = Wallet(public_key=data["public_key"], private_key=data["private_key"], transactions=data["transactions"],
-                    utxos=data["utxos"], others_utxos=data["others_utxos"], value=data["value"])
+#    wallet = Wallet(public_key=data["public_key"], private_key=data["private_key"], transactions=data["transactions"],
+#                    utxos=data["utxos"], others_utxos=data["others_utxos"], value=data["value"])
 
-    print(wallet)
+#    print(wallet)
 
-    return 200
+#    return 200
 
-#------------------------------------
+#----------------------------------------------------------------------#
+#--------------------- RES API FOR FRONTEND --------------------------#
+#----------------------------------------------------------------------#
 # Home page
-@app.route('/')
+@app.route('/', methods=['GET'])
 def home():
-    # Store host ip and port
-    #session['HOST'] = HOST
-    #session['PORT'] = PORT
     # Keep track of current page
     session['viewing'] = 'home'
     # pass data to page call
     data = {
+        'ADDRESS': new_node.address,
+        'PUB_KEY': new_node.public,
+        'NO_OF_NODES': len(new_node.ring),
         'CPU_PERCENT': psutil.cpu_percent(),
         'MEM_PERCENT': psutil.virtual_memory()[2]
     }
     return render_template('home.html', data=data)
 
+# Node's Wallet
+@app.route('/wallet', methods=['GET'])
+def wallet():
+    session['viewing'] = 'wallet'
+    # pass data to page call
+    data = {
+        'NODE_ID': new_node.id,
+        'ADDRESS': new_node.address,
+        'BALANCE': new_node.wallet.wallet_balance(),
+    }
+    return render_template("wallet.html", data=data)
 
 # Help
 @app.route('/help', methods=['GET'])
@@ -220,13 +224,11 @@ def help():
     session['viewing'] = 'help'
     return render_template('help.html')
 
-
 # About
 @app.route('/about', methods=['GET'])
 def about():
     session['viewing'] = 'about'
     return render_template("about.html")
-
 
 # Contact
 @app.route('/contact', methods=['GET'])
@@ -234,54 +236,21 @@ def contact():
     session['viewing'] = 'contact'
     return render_template("contact.html")
 
-
-# Frequently Asked Questions
-@app.route('/faq', methods=['GET'])
-def faq():
-    session['viewing'] = 'faq'
-    return render_template("faq.html")
-
-
-# User's Profile
-@app.route('/profile', methods=['GET'])
-def profile():
-    session['viewing'] = 'profile'
-    return render_template("profile.html")
-
 ##############################################################################################
 
-
-
-#print('\n------------------------------------------------------------------')
-#print('Testing\n\n')
-## Dummy variables
-#sender_address = 'sender_public_key'
-#receiver_address = 'receiver_public_key'
-#amount = 5
-#transaction_inputs = 0
-#transaction_outputs = {1, (4, 1)}
-## create new transaction
-#t1 = Transaction(sender_address=sender_address, receiver_address=receiver_address, amount=amount,
-#                 transaction_inputs=transaction_inputs, transaction_outputs=transaction_outputs)
-#t1.hash()
-#t2 = Transaction(sender_address=sender_address, receiver_address=receiver_address, amount=amount,
-#                 transaction_inputs=transaction_inputs, transaction_outputs=transaction_outputs)
-#t2.hash()
-#print(f'Transactions Example\n{t1.od}')
-#print(f'Hash: {t1.current_hash}')
-#blockchain = Blockchain()
-#block = Block(index=1, transactions=[t1, t2], nonce=0, previous_hash=0)
-## Hash block
-#block.hash()
-#print(f'\nBlock Details example\n{block.od}')
-#print(f'Hash: {block.current_hash}')
-#print(f'\nJson dump:\n{json.dumps(block.od, default=str)}')
-#blockchain.add_block(block)
-#print('\nBlockchain example')
-#print(blockchain)
-#print(f'\nProof of Work for {blockchain.blocks[-1].current_hash}: {blockchain.mine_block(difficulty=2)}\n')
-#print('------------------------------------------------------------------\n')
-
+# Function to read file for transactions
+def read_file():
+    print("Reading file for transactions")
+    f = open("./transactions/trans" + str(new_node.id)[-1] + ".txt", "r")
+    for j in range(5):
+        node_id, value = (f.readline()).split()
+        for nodes in new_node.ring:
+            if nodes["id"] == node_id[2:]:
+                receiver = nodes["public_key"]
+                break    
+        new_node.create_transaction(new_node.public ,receiver, int(value))
+                #break
+    return
 
 # .......................................................................................
 # Function for node

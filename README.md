@@ -46,6 +46,8 @@ Blockchain Project for 'Distributed Systems' M.Sc. Course 2019-2020.
    | transaction.py
    | wallet.py
 │
+└── public_keys
+│
 └── static
    | js
    | css

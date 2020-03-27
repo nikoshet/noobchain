@@ -120,7 +120,7 @@
                   dataType : 'json',
                   data: $('#transaction_form').serialize(),
                   success: function(response){
-                    console.log(data);
+                    console.log($('#transaction_form').serialize());
                     //reset form
                     $("#transaction_form")[0].reset();
 

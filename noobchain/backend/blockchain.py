@@ -108,7 +108,6 @@ class Blockchain:
                         node_id = trans["node_id"]
                         change = trans["change"]
                         transaction = Transaction(sender_address,receiver_address, amount, transaction_inputs, None,node_id)
-                        transactions.append(transaction.to_od())
                         transaction.transaction_id = transaction_id
                         transaction.signature = signature
                         transaction.transaction_outputs = transaction_outputs

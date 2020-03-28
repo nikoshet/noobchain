@@ -62,7 +62,6 @@ class Node:
             #self.register_on_bootstrap()
 
 
-
     def __str__(self):
         return f'------ PRINTING DETAILS FOR USER: [{self.ip}] ------' \
                f'\n{self.ip} {self.port}' \
@@ -85,7 +84,6 @@ class Node:
 
     # Get a public key and a private key with RSA
     def first_time_keys(self):
-        # https://pycryptodome.readthedocs.io/en/latest/src/public_key/rsa.html#Crypto.PublicKey.RSA.generate
         # Generate random RSA object
         gen = RSA.generate(2048)
         private_key = gen.exportKey('PEM').decode()
@@ -98,33 +96,20 @@ class Node:
         wall = Wallet(publ, priv)
         return wall
 
-    # Create first block of blockchain (for Bootstrap)
-    def create_genesis_block(self):
-        self.create_new_block(previous_hash=1, nonce=0)
-        # self.trans = self.create_transaction(0, self.wallet.public_key, self.no_of_nodes * 100)
-        # create genesis transaction
-        self.trans = Transaction(sender_address=0, receiver_address=self.address,
-                                 amount=500, transaction_inputs='',wallet=self.wallet,id=self.id,genesis=True)
-
-        self.add_transaction_to_block(self.new_block, self.trans)
-        # Mine block
-        self.blockchain.mine_block(self.new_block)
-
     def register_node_to_ring(self, message):
         # Add the new node to ring
         # Bootstrap node informs all other nodes and gives the new node an id and 100 NBCs
         node_address = message.get('address')
         public_key = message.get('public_key')
         self.ring.append({'id': str.join('id', str(len(self.ring))), 'public_key': public_key, 'address': node_address})
-
         #print(self.ring)
 
         # Broadcast ring to all nodes
         if len(self.ring) == self.no_of_nodes:
-            Thread(target=self.broadcast_ring_to_nodes).start()
-            Thread(target=self.respond_to_node).start()
-            #self.broadcast_ring_to_nodes()
-            #self.respond_to_node()
+            #Thread(target=self.broadcast_ring_to_nodes).start()
+            #Thread(target=self.respond_to_node).start()
+            self.broadcast_ring_to_nodes()
+            self.respond_to_node()
 
     def respond_to_node(self):
         value = 100
@@ -237,7 +222,6 @@ class Node:
         else:
             print('Error on validating')
             return False
-
 
     def mine_new_block(self):
         #create the new block and start mining it
@@ -360,19 +344,6 @@ class Node:
         self.new_block = Block(new_block_index, [], nonce, previous_hash)
         # return True
         self.blockchain.append(self.new_block)
-
-    def add_transaction_to_block(self, block, transaction):
-        # if transaction is for genesis block
-        if len(self.blockchain.blocks) == 0:
-            self.blockchain.mine_block(block)
-        # if enough transactions mine
-        if len(self.new_block.transactions) == self.capacity:
-            self.blockchain.mine_block(block)
-        # append transaction to block
-        else:
-            self.new_block.transactions.append(transaction)
-        # return True
-
 
     def valid_block(self, block):
         #Transform the json to block object

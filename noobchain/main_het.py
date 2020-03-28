@@ -7,7 +7,7 @@ from threading import Thread
 import time
 import json
 from backend.node import Node
-
+from datetime import datetime
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder='static')
@@ -97,9 +97,22 @@ def create_browser_transaction():
     receiver = receiver.replace(' ', '\n')
     receiver = '-----BEGIN RSA PUBLIC KEY-----\n' + receiver + '\n-----END RSA PUBLIC KEY-----'
     amount = request.form['amount']
-    trans = new_node.create_transaction(sender, receiver, int(amount))
-    response = 'success'
-    return jsonify(response), 200
+
+    if not amount.isnumeric():
+        response = 'The amount of NBCs is not valid.'
+        return jsonify(response), 400
+
+    elif sender != new_node.public:
+        response = 'Your public key is not valid.'
+        return jsonify(response), 400
+    else:
+        for node in new_node.ring:
+            if node["public_key"] == receiver:
+                trans = new_node.create_transaction(sender, receiver, int(amount))
+                response = 'success'
+                return jsonify(response), 200
+        response = 'The public key of receiver is not valid.'
+        return jsonify(response), 400
 
 # Create a transaction
 @app.route('/transactions/create', methods=['POST'])
@@ -111,6 +124,8 @@ def create_transaction():
     for node in new_node.ring:
         if node["id"]==sender[2:]: sender = node["public_key"]
         if node["id"]==receiver[2:]: receiver = node["public_key"]
+    #print("SEN", sender, "RES", sender)
+    time.sleep(0.5)
     trans = new_node.create_transaction(sender, receiver, int(amount))
     response = 'success'
     return jsonify(response), 200
@@ -188,7 +203,8 @@ def wallet():
     #print(res)
     money_sent = requests.get(new_node.address + '/transactions/money/sent').json()
     money_received = requests.get(new_node.address + '/transactions/money/received').json()
-
+    date = json.loads(new_node.blockchain.blocks[-1].to_json())['timestamp']
+    date = datetime.utcfromtimestamp(date).strftime('%Y-%m-%d %H:%M:%S')
     data = {
         'NODE_ID': new_node.id,
         'ADDRESS': new_node.address,
@@ -197,6 +213,7 @@ def wallet():
         'BLOCK_NONCE': json.loads(new_node.blockchain.blocks[-1].to_json())['nonce'],
         'MONEY_SENT': money_sent,
         'MONEY_RECEIVED': money_received,
+        'BLOCK_DATETIME': date,
     }
     return render_template("wallet.html", data=data)
 

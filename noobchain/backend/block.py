@@ -1,5 +1,4 @@
 import time
-from datetime import datetime
 from collections import OrderedDict
 from hashlib import sha256
 import json

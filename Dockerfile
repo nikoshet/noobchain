@@ -1,20 +1,27 @@
 FROM python:3.7.7-slim-stretch
+#FROM python:3.7.7-stretch
 
 MAINTAINER Noobcash Blockchain
 
-RUN apt-get update && apt-get install gcc -y
+# Environment Variables
+ENV IP                   0.0.0.0
+ENV PORT                 1000
+ENV BOOTSTRAP            True
+ENV IP_BOOTSTRAP	 0.0.0.0 
+ENV PORT_BOOTSTRAP	 1000
+ENV NODES		 5
+ENV CAPACITY		 2
+ENV DIFFICuLTY		 4
 
-#RUN apk update  && apk add --no-cache gcc 
-
+# Copy files
 COPY ./requirements.txt /app/requirements.txt
-
-WORKDIR /app
-
-RUN pip install -r requirements.txt
-
 COPY . /app
 
-#ENTRYPOINT ["python3","noobchain/main.py"]
-#CMD python3 noobchain/main_het.py 
+# Set working directory
+WORKDIR /app
 
-ENTRYPOINT ["python3","-u","noobchain/main_het.py","-ip 0.0.0.0 -p 1000 -bootstrap True -ip_bootstrap 0.0.0.0 -port_bootstrap 1000 -nodes 5 -cap 2 -dif 4"]
+RUN apt-get update && apt-get install gcc -y && \
+	pip install -r requirements.txt
+
+# Final command
+ENTRYPOINT ["python3","-u","noobchain/main_het.py","-ip ${IP} -p ${PORT} -bootstrap ${BOOTSTRAP} -ip_bootstrap ${IP_BOOTSTRAP} -port_bootstrap ${PORT_BOOTSTRAP} -nodes ${NODES} -cap ${CAPACITY} -dif ${DIFFICuLTY}"]

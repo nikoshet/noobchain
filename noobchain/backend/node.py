@@ -16,12 +16,7 @@ from collections import OrderedDict
 from base64 import b64decode
 from copy import deepcopy
 
-#from main import capacity, difficulty
-
 import binascii
-
-#capacity = 1
-#difficulty = 4
 
 class Node:
 

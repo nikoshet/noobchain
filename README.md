@@ -99,7 +99,9 @@ python3 main.py -ip IP -port PORT -bootstrap TRUE -ip_boostrap IP_OF_BOOTSTRAP -
 
 ### Licence
 
-css used is under the MIT License and can be found here: [darkly](https://bootswatch.com/darkly/)
+The css code used is under the MIT License and can be found here: [darkly](https://bootswatch.com/darkly/).
+
+The logo of the web interface is based on Bitcoin logo, and can be found [here](https://bitcoin.org/en/).
 
 Nick Nikitas, Dimitris Zografakis, Dimitris Lambrakis.
 

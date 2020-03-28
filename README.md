@@ -68,10 +68,6 @@ Blockchain Project for 'Distributed Systems' M.Sc. Course 2019-2020.
        | 10 nodes
 │
 └── main.py
-   | Feature Extraction
-   | Clean Data
-       | General
-       | Geospatial Data
 
 ```
 

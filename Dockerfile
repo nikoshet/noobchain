@@ -24,4 +24,6 @@ RUN apt-get update && apt-get install gcc -y && \
 	pip install -r requirements.txt
 
 # Final command
-ENTRYPOINT ["python3","-u","noobchain/main_het.py","-ip ${IP} -p ${PORT} -bootstrap ${BOOTSTRAP} -ip_bootstrap ${IP_BOOTSTRAP} -port_bootstrap ${PORT_BOOTSTRAP} -nodes ${NODES} -cap ${CAPACITY} -dif ${DIFFICuLTY}"]
+#ENTRYPOINT ["python3","-u","noobchain/main_het.py","-ip ${IP} -p ${PORT} -bootstrap ${BOOTSTRAP} -ip_bootstrap ${IP_BOOTSTRAP} -port_bootstrap ${PORT_BOOTSTRAP} -nodes ${NODES} -cap ${CAPACITY} -dif ${DIFFICuLTY}"]
+
+#ENTRYPOINT ["python3","-u","noobchain/main_het.py"]

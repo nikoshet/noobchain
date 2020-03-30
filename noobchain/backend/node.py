@@ -404,10 +404,10 @@ class Node:
 
     def read_file(self):
         while len(self.ring) < self.no_of_nodes:
-            time.sleep(10)
+            time.sleep(self.no_of_nodes * 10)
 
         my_path = os.path.abspath(os.path.dirname(__file__))
-        file = os.path.join(my_path, f"../transactions/{self.no_of_nodes}nodes/transactions{self.id[2:]}.txt")
+        file = os.path.join(my_path, f'../transactions/{self.no_of_nodes}nodes/transactions{self.id[2:]}.txt')
 
         with open(file, 'r') as file:
             for line in file:

@@ -48,19 +48,20 @@ class Blockchain:
         block_to_mine.nonce = nonce
 
         # update hash
-        block_hash = block_to_mine.get_hash_obj()
+        block_hash = block_to_mine.get_hash()
+
         # try new hashes until first n characters are 0
-        while block_hash.hexdigest()[:difficulty] != '0' * difficulty and continue_mine():
+        while block_hash[:difficulty] != '0' * difficulty and continue_mine():
             # block_hash.update(f'{nonce}{prev_hash.hexdigest()}'.encode('utf-8'))
-            block_hash = block_to_mine.get_hash_obj()
             nonce += 1
             block_to_mine.nonce = nonce
+            block_hash = block_to_mine.get_hash()
 
         # update with new calculated hash
         if continue_mine():
             print("I GOT A BLOCK")
-            block_to_mine.current_hash = block_hash.hexdigest()
-            block_to_mine.nonce = nonce - 1
+            block_to_mine.current_hash = block_hash
+            # block_to_mine.nonce = nonce - 1
             self.broadcast_block(block_to_mine)
         return
 
@@ -110,14 +111,14 @@ class Blockchain:
                     for t in block["transactions"]:
                         transaction = Transaction(sender_address=t["sender_address"],
                                                   receiver_address=t["receiver_address"],
-                                                  amount=t["amount"], wallet=None,
+                                                  amount=int(t["amount"]), wallet=None,
                                                   transaction_inputs=t["transaction_inputs"],
                                                   ids=t["node_id"])
 
-                        transaction.transaction_id = t["transaction_id"]
+                        transaction.transaction_id = int(t["transaction_id"])
                         transaction.signature = t["signature"]
                         transaction.transaction_outputs = t["transaction_outputs"]
-                        transaction.change = t["change"]
+                        transaction.change = int(t["change"])
 
                         # Dont need this?!
                         # transaction = transaction.to_od()
@@ -145,7 +146,7 @@ class Blockchain:
 
     def to_od(self):
         od = OrderedDict([
-            ('blockchain', [block.to_od() for block in self.blocks])
+            ('blockchain', [(block.to_od(), block.current_hash) for block in self.blocks])
         ])
 
         return od

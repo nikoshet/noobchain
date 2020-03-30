@@ -16,15 +16,16 @@
                                         <table class="table table-hover" style="color:#fff">
                                             <thead>
                                             <tr>
-                                                <th scope="col">Block ID: {{ block['index'] }}</th>
-                                                <th scope="col">Hash: {{ block['current_hash'] }}</th>
+                                                <th scope="col">Block ID: {{ block[0]['index'] }}</th>
+                                                <th scope="col">Hash: {{ block[1] }}</th>
+                                                <th scope="col"></th>
                                             </tr>
                                             </thead>
                                             <tbody>
                                             <tr class="table-active">
-                                                <td>Previous Hash: {{ block['previous_hash'] }}</td>
-                                                <td>Timestamp: {{ block['timestamp'] }}</td>
-                                                <td>Nonce: {{ block['nonce'] }}</td>
+                                                <td>Mined: {{ block[0]['timestamp'] | ctime}}</td>
+                                                <td>Previous Hash: {{ block[0]['previous_hash'] }}</td>
+                                                <td>Nonce: {{ block[0]['nonce'] }}</td>
                                             </tr>
                                             </tbody>
                                         </table>

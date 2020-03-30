@@ -258,8 +258,14 @@ def contact():
 @app.route('/blockchain', methods=['GET'])
 def blockchain():
     session['viewing'] = 'blockchain'
+
     return render_template("blockchain.html", data=new_node.blockchain.to_od())
 
+
+# Custome filter to convert UNIX time to HUMAN TIME
+@app.template_filter('ctime')
+def timectime(s):
+    return time.ctime(s)
 ##############################################################################################
 
 # # Function to read file for transactions

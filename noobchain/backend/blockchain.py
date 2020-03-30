@@ -24,7 +24,6 @@ class Blockchain:
         self.genesis.current_hash = self.genesis.get_hash()
 
         self.blocks = [self.genesis]  # List of added blocks (aka chain)
-
         self.resolve = False  # Check chain updates (bigger was found)
 
     def __str__(self):
@@ -38,7 +37,6 @@ class Blockchain:
 
     def add_block(self, new_block):
         self.blocks.append(new_block)
-
         return self
 
     def mine_block(self, block, difficulty, continue_mine):
@@ -97,7 +95,7 @@ class Blockchain:
                 tmp_blocks = new_blocks["blockchain"]
                 tmp_blockchain = []
                 #parse the json block to an actual block item
-                for block in tmp_blockchain:
+                for block in tmp_blocks:
                     transactions = []
                     for trans in block["transactions"]:
                         sender_address = trans["sender_address"]
@@ -105,20 +103,33 @@ class Blockchain:
                         amount = trans["amount"]
                         transaction_id = trans["transaction_id"]
                         transaction_inputs = trans["transaction_inputs"]
+                        transaction_outputs = trans["transaction_outputs"]
                         signature = trans["signature"]
                         node_id = trans["node_id"]
+                        change = trans["change"]
                         transaction = Transaction(sender_address,receiver_address, amount, transaction_inputs, None,node_id)
-                        trnsaction.signature = signature
-                        transactions.append(transaction.to_od())
+                        transaction.transaction_id = transaction_id
+                        transaction.signature = signature
+                        transaction.transaction_outputs = transaction_outputs
+                        transaction.change = change
+                        transaction = transaction.to_od()
+                        transactions.append(transaction)
                     block = Block(block["index"],transactions,block["nonce"],block["previous_hash"],block["timestamp"])
+                    block.current_hash = block.get_hash()
                     tmp_blockchain.append(block)
 
-                print(f'\nCollected chain\n')
+                print(f'Collected chain')
                 # If bigger is to be found, replace existing chain
                 if len(tmp_blockchain) > len(self.blocks) and self.validate_chain(tmp_blockchain):
-                    self.blocks = blocks
-
-        return 
+                    print("\n\n\n\n\nI changed my blockchain WOOHOO!")
+                    self.blocks = tmp_blockchain
+                    return True
+                elif len(tmp_blockchain) == len(self.blocks):
+                    print("We are equal")
+                    return False
+                else:
+                    print("MINE IS BIGGER AND BETTER")
+                    return False
 
     def to_od(self):
         od = OrderedDict([
@@ -139,11 +150,10 @@ class Blockchain:
     def validate_block(self, block, difficulty):
         #check the proof of work
         if  difficulty *"0" != block.get_hash_obj().hexdigest()[:difficulty]:
-            print(block.get_hash_obj().hexdigest())
             print("I failed the nonce test")
             return False
         #check tha it sticks to our chain
-        if self.blocks[-1].current_hash != block.previous_hash:
+        if self.blocks[-1].current_hash != block.previous_hash and block.index!=1:
             print("I failed the previous hash test")
             return False
 
@@ -155,9 +165,11 @@ class Blockchain:
         for (index, block) in enumerate(blockchain):
             if index == 0:
                 continue
-            if block.previous_hash != blockchain[index - 1].current_hash:
-                return False
             if block.current_hash != block.get_hash():
+                print("My blocks are wrong :(")
+                return False
+            if block.previous_hash != blockchain[index - 1].current_hash:
+                print("I am not well connected :(")
                 return False
 
         return True

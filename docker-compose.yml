@@ -1,0 +1,90 @@
+version: "2"
+
+networks:
+  noobchain:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.1.0/24
+
+services:
+  node_1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_1
+    networks:
+      noobchain:
+        ipv4_address: 192.168.1.10
+    ports:
+      - "1000:1000/tcp"
+    entrypoint: python3 noobchain/main_het.py -ip 192.168.1.10 -p 1000 -bootstrap True -ip_bootstrap 192.168.1.10 -port_bootstrap 1000 -nodes 5 -cap 4 -dif 4
+    mem_limit: 500m
+    environment:
+      - PYTHONUNBUFFERED=1
+  node_2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_2
+    networks:
+      noobchain:
+        ipv4_address: 192.168.1.20
+    ports:
+      - "2000:2000/tcp"    
+    entrypoint: python3 noobchain/main_het.py -ip 192.168.1.20 -p 2000 -bootstrap False -ip_bootstrap 192.168.1.10 -port_bootstrap 1000 -nodes 5 -cap 4 -dif 4
+    mem_limit: 500m
+    depends_on:
+      - node_1
+    environment:
+      - PYTHONUNBUFFERED=1
+  node_3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_3
+    networks:
+      noobchain:
+        ipv4_address: 192.168.1.30
+    ports:
+      - "3000:3000/tcp"      
+    entrypoint: python3 noobchain/main_het.py -ip 192.168.1.30 -p 3000 -bootstrap False -ip_bootstrap 192.168.1.10 -port_bootstrap 1000 -nodes 5 -cap 4 -dif 4   
+    mem_limit: 500m
+    depends_on:
+      - node_1
+    environment:
+      - PYTHONUNBUFFERED=1
+  node_4:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_4
+    networks:
+      noobchain:
+        ipv4_address: 192.168.1.40
+    ports:
+      - "4000:4000/tcp"
+    entrypoint: python3 noobchain/main_het.py -ip 192.168.1.40 -p 4000 -bootstrap False -ip_bootstrap 192.168.1.10 -port_bootstrap 1000 -nodes 5 -cap 4 -dif 4   
+    mem_limit: 500m
+    depends_on:
+      - node_1
+    environment:
+      - PYTHONUNBUFFERED=1
+  node_5:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_5
+    networks:
+      noobchain:
+        ipv4_address: 192.168.1.50
+    ports:
+      - "5000:5000/tcp"
+    entrypoint: python3 noobchain/main_het.py -ip 192.168.1.50 -p 5000 -bootstrap False -ip_bootstrap 192.168.1.10 -port_bootstrap 1000 -nodes 5 -cap 4 -dif 4   
+    mem_limit: 500m
+    depends_on:
+      - node_1
+    environment:
+      - PYTHONUNBUFFERED=1
+

@@ -69,7 +69,7 @@
           <div class="modal-body">
             <div class="alert alert-success" role="alert">
               <h4 class="alert-heading">Successful Transaction!</h4>
-              <p>You successfully completed your transaction. It will be added to a block.</p>
+              <p>You successfully completed your transaction.</p>
             </div>
           </div>
           <div class="modal-footer">
@@ -90,7 +90,9 @@
           <div class="modal-body">
             <div class="alert alert-danger" role="alert">
               <h4 class="alert-heading">Error on Transaction!</h4>
-              <p>An error occured. Please try again.</p>
+                <p>An error occured:</p>
+                <p id="error_response"></p>
+                <p>Please try again.</p>
             </div>
           </div>
           <div class="modal-footer">
@@ -101,7 +103,6 @@
     </div>
 
 
-
     <!-- Bootstrap/Jquery core JavaScript -->
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
@@ -110,41 +111,37 @@
         $("#create_transaction").click(function (e) {
             e.preventDefault();
             value = document.getElementById("amount").value
-            // Check if value is integer
-            if (value%1===0){
 
-                $.ajax({
-                  url: '{{ data['ADDRESS'] }}' + "/transactions/create/browser",
-                  type: "POST",
-                  headers: {'Access-Control-Allow-Origin':'*'},
-                  dataType : 'json',
-                  data: $('#transaction_form').serialize(),
-                  success: function(response){
-                    console.log(data);
-                    //reset form
-                    $("#transaction_form")[0].reset();
+            $.ajax({
+              url: '{{ data['ADDRESS'] }}' + "/transactions/create/browser",
+              type: "POST",
+              headers: {'Access-Control-Allow-Origin':'*'},
+              dataType : 'json',
+              data: $('#transaction_form').serialize(),
+              success: function(response){
+                console.log($('#transaction_form').serialize());
+                //reset form
+                $("#transaction_form")[0].reset();
 
-                    //clean text boxes
-                    $("#sender_address").val("");
-                    $("#receiver_address").val("");
-                    $("#amount").val("");
+                //clean text boxes
+                $("#sender_address").val("");
+                $("#receiver_address").val("");
+                $("#amount").val("");
 
-                    $("#success_transaction_modal").modal('show');
+                $("#success_transaction_modal").modal('show');
 
-                  },
-                  error: function(error){
-                    $("#error_transaction_modal").modal('show');
-                    console.log('Transaction error');
-                  }
-                });
-            }
-            else{
-                alert('Please enter an integer value for amount of NBCs.');
-                }
+              },
+              error: function(error){
+                var div = document.getElementById('error_response');
+                div.innerHTML = error.responseJSON;
+
+                $("#error_transaction_modal").modal('show');
+                console.log(error.responseJSON);
+                console.log('Transaction error');
+              }
+            });
 
          });
-
-
 
     </script>
 

@@ -3,3 +3,4 @@ pycryptodome==3.4.3
 flask-cors==3.0.8
 psutil==5.7.0
 requests==2.21.0
+waitress==1.2.1

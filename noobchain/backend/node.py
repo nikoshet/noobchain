@@ -16,12 +16,7 @@ from collections import OrderedDict
 from base64 import b64decode
 from copy import deepcopy
 
-#from main import capacity, difficulty
-
 import binascii
-
-#capacity = 1
-#difficulty = 4
 
 class Node:
 
@@ -67,7 +62,6 @@ class Node:
             #self.register_on_bootstrap()
 
 
-
     def __str__(self):
         return f'------ PRINTING DETAILS FOR USER: [{self.ip}] ------' \
                f'\n{self.ip} {self.port}' \
@@ -90,7 +84,6 @@ class Node:
 
     # Get a public key and a private key with RSA
     def first_time_keys(self):
-        # https://pycryptodome.readthedocs.io/en/latest/src/public_key/rsa.html#Crypto.PublicKey.RSA.generate
         # Generate random RSA object
         gen = RSA.generate(2048)
         private_key = gen.exportKey('PEM').decode()
@@ -103,37 +96,29 @@ class Node:
         wall = Wallet(publ, priv)
         return wall
 
-    # Create first block of blockchain (for Bootstrap)
-    def create_genesis_block(self):
-        self.create_new_block(previous_hash=1, nonce=0)
-        # self.trans = self.create_transaction(0, self.wallet.public_key, self.no_of_nodes * 100)
-        # create genesis transaction
-        self.trans = Transaction(sender_address=0, receiver_address=self.address,
-                                 amount=500, transaction_inputs='',wallet=self.wallet,id=self.id,genesis=True)
-
-        self.add_transaction_to_block(self.new_block, self.trans)
-        # Mine block
-        self.blockchain.mine_block(self.new_block)
-
     def register_node_to_ring(self, message):
         # Add the new node to ring
         # Bootstrap node informs all other nodes and gives the new node an id and 100 NBCs
         node_address = message.get('address')
         public_key = message.get('public_key')
         self.ring.append({'id': str.join('id', str(len(self.ring))), 'public_key': public_key, 'address': node_address})
-
         #print(self.ring)
 
         # Broadcast ring to all nodes
         if len(self.ring) == self.no_of_nodes:
-            Thread(target=self.broadcast_ring_to_nodes).start()
-            Thread(target=self.respond_to_node).start()
+            #Thread(target=self.broadcast_ring_to_nodes).start()
+            #Thread(target=self.respond_to_node).start()
+            self.broadcast_ring_to_nodes()
+            self.respond_to_node()
 
     def respond_to_node(self):
         value = 100
+        i = 1
         for member in self.ring:
             address = member.get('address')
             if address != self.address:
+                print(i)
+                i += 1
                 #address = member.get('address')
                 public_key = member.get('public_key')
                 #message = {'sender': self.address, 'receiver': address,
@@ -174,6 +159,10 @@ class Node:
             if tmp<value:
                 trans_input.append(key)
                 tmp+=available
+        # If we don't have the money we can't create the transaction
+        # if tmp<value:
+        #   print("HEY DON'T CHEAT I HAVE ENOUGH BUGS ALREADY")
+        #  return False
         my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address,amount=value, transaction_inputs=trans_input,wallet=self.wallet,ids=self.id)
         my_trans.signature = Wallet.sign_transaction(self.wallet, my_trans)
         message = {'transaction': my_trans.to_json()}
@@ -222,6 +211,8 @@ class Node:
             self.blockchain = Blockchain(self.ring, self.id)
         #check signature and value of the transaction
         if self.verify_value(transaction) and self.verify_signature(transaction, sender):
+            # if everything is good change the UTXOS
+            self.update_utxos(transaction, self.wallet)
             #add to list of transactions
             self.pending_transactions.append(transaction)
             #if I have reached my capacity it's time to create new block and mine it
@@ -232,11 +223,10 @@ class Node:
             print('Error on validating')
             return False
 
-
     def mine_new_block(self):
         #create the new block and start mining it
         self.mining = True
-        new_block_index = len(self.blockchain.blocks)
+        new_block_index = self.blockchain.blocks[-1].index + 1
         previous_hash = self.blockchain.blocks[new_block_index-1].current_hash
         nonce=0
         self.new_block = Block(new_block_index, self.pending_transactions[:self.capacity], nonce, previous_hash)
@@ -276,8 +266,6 @@ class Node:
         public_key = RSA.importKey(pub_key)
         sign_to_test = PKCS1_v1_5.new(public_key)
         if sign_to_test.verify(h,b64decode(trans["signature"])):
-            #the value is already checked on validate_transaction so it's time to update the utxos of others so we can keep track
-            self.update_utxos(trans,self.wallet)
             return True
         print("Wrong signature")
         return False
@@ -357,42 +345,35 @@ class Node:
         # return True
         self.blockchain.append(self.new_block)
 
-    def add_transaction_to_block(self, block, transaction):
-        # if transaction is for genesis block
-        if len(self.blockchain.blocks) == 0:
-            self.blockchain.mine_block(block)
-        # if enough transactions mine
-        if len(self.new_block.transactions) == self.capacity:
-            self.blockchain.mine_block(block)
-        # append transaction to block
-        else:
-            self.new_block.transactions.append(transaction)
-        # return True
-
-
     def valid_block(self, block):
         #Transform the json to block object
+        self.mining = False
         block_index = block["index"]
         block_timestamp = block["timestamp"]
         block_transactions = block["transactions"]
         block_nonce = block["nonce"]
         block_previous_hash = block["previous_hash"]
         block_to_test = Block(block_index, block_transactions, block_nonce, block_previous_hash, block_timestamp)
+        transactions_ids_in_block = []
+        # which transactions are in the block?
+        for i in range(len(block_to_test.transactions)):
+            transactions_ids_in_block.append(block_to_test.transactions[i]["transaction_id"])
+        # which transactions I should get rid of?
+        get_rid = [i for i in self.pending_transactions if (i["transaction_id"] in transactions_ids_in_block)]
         #verify the new block we got
-        if self.blockchain.validate_block(block_to_test, self.difficulty):
-            self.mining = False
+        if self.blockchain.validate_block(block_to_test, self.difficulty) and len(get_rid)!=0:#I will actually benefit from testing this block
             block_to_test.current_hash = block_to_test.get_hash_obj().hexdigest()
-            transactions_ids_in_block = []
-            #which transactions are in the block?
-            for i in range(len(block_to_test.transactions)):
-                transactions_ids_in_block.append(block_to_test.transactions[i]["transaction_id"])
             #remove these transactions from our pending block
             self.pending_transactions = [i for i in self.pending_transactions if not(i["transaction_id"] in transactions_ids_in_block)]
             #add the confirmed block tou our chain
             self.blockchain.add_block(block_to_test)
         #maybe we have the wrong blockchain?
-        else:
-            self.blockchain.resolve_conflict()
+        elif len(get_rid) != 0:  # if we dont get rid of items then we don't care
+            if self.blockchain.resolve_conflict():
+                block_to_test = self.blockchain.blocks[-1]
+                # remove these transactions from our pending block
+                self.pending_transactions = [i for i in self.pending_transactions if
+                                             not (i["transaction_id"] in transactions_ids_in_block)]
         print(self.blockchain)
         #keep the dream alive
         if len(self.pending_transactions)!=0:

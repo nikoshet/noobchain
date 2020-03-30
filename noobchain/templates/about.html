@@ -10,32 +10,20 @@
                     <div class="row">
 
                         <div class="col s12">
+                            <h5 style="color:#fff">Basic Information About the Blockchain Application:</h5>
+                            <br>
                             <div class="card border-secondary mb-4">
                                 <form>
+
                                     <fieldset>
-                                        <div class="card-header"><h5 style="color:#fff">Basic Information About the Blockchain Application:</h5></div>
+                                        <div class="card-header"><h5 style="color:#fff">Architecture of Application</h5></div>
                                         <div class="card-body">
 
                                             <table class="table table-hover" style="color:#fff">
-                                                <thead>
-                                                <tr>
-                                                    <th scope="col">e</th>
-                                                    <th scope="col">e</th>
-                                                    <th scope="col">e</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                <tr class="table-active">
-                                                    <th scope="row">e</th>
-                                                    <td>Home</td>
-                                                    <td>e</tr>
-                                                <tr class="table-active">
-                                                    <th scope="row">e</th>
-                                                    <td>e</td>
-                                                    <td>e</td>
-                                                </tr>
+                                                <p>
+                                                   ?????????????
+                                                </p>
 
-                                                </tbody>
                                             </table>
 
                                         </div>
@@ -66,33 +54,54 @@
                                                 </thead>
                                                 <tbody>
                                                 <tr class="table-active">
+                                                    <th scope="row">/chain</th>
+                                                    <td>GET</td>
+                                                    <td>Get the blockchain from other nodes to resolve conflict</tr>
+                                                <tr class="table-active">
                                                     <th scope="row">/transactions/view</th>
                                                     <td>GET</td>
-                                                    <td>e</tr>
+                                                    <td>View transactions from last verified block</tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/transactions/create/browser</th>
+                                                    <td>POST</td>
+                                                    <td>Create a transaction via browser client</td>
+                                                </tr>
+
+                                                <tr class="table-active">
+                                                    <th scope="row">/transactions/money/sent</th>
+                                                    <td>GET</td>
+                                                    <td>Get money sent from verified transactions</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/transactions/money/received</th>
+                                                    <td>GET</td>
+                                                    <td>Get money received from verified transactions</td>
+                                                </tr>
+
                                                 <tr class="table-active">
                                                     <th scope="row">/transactions/create</th>
                                                     <td>POST</td>
-                                                    <td>a</td>
+                                                    <td>Create a transaction</td>
                                                 </tr>
                                                 <tr class="table-active">
                                                     <th scope="row">/broadcast/transaction</th>
                                                     <td>POST</td>
-                                                    <td>a</td>
+                                                    <td>Broadcast a transaction to other nodes</td>
                                                 </tr>
                                                 <tr class="table-active">
                                                     <th scope="row">/broadcast/ring</th>
                                                     <td>POST</td>
-                                                    <td>a</td>
+                                                    <td>Broadcast the node to other nodes (for Bootstrap node)</td>
                                                 </tr>
                                                 <tr class="table-active">
                                                     <th scope="row">/broadcast/block</th>
                                                     <td>POST</td>
-                                                    <td>a</td>
+                                                    <td>Broadcast a block to other nodes</td>
                                                 </tr>
                                                 <tr class="table-active">
                                                     <th scope="row">/nodes/register</th>
                                                     <td>POST</td>
-                                                    <td>a</td>
+                                                    <td>Register node to bootstrap ring</td>
                                                 </tr>
                                                 </tbody>
                                             </table>
@@ -113,7 +122,7 @@
                                                     <td>GET</td>
                                                     <td>Home page</tr>
                                                 <tr class="table-active">
-                                                    <th scope="row">/waller</th>
+                                                    <th scope="row">/wallet</th>
                                                     <td>GET</td>
                                                     <td>Node's wallet</td>
                                                 </tr>

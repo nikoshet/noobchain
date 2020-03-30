@@ -40,16 +40,19 @@ difficulty = args.dif
 
 new_node = Node(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes, capacity, difficulty)
 
-##############################################################################################
-#----------------------------------------------------------------------#
-#---------------------- REST API FOR BACKEND ---------------------------#
-#----------------------------------------------------------------------#
+######################################################################
+# ------------------------------------------------------------------ #
+# ---------------------- REST API FOR BACKEND ---------------------- #
+# ------------------------------------------------------------------ #
+######################################################################
+
 
 # Respond with our chain to resolve conflicts
 @app.route('/chain', methods=['GET'])
 def send_chain():
     chain = new_node.blockchain.to_json()
     return jsonify(chain), 200
+
 
 # View transactions from last verified block
 @app.route('/transactions/view', methods=['GET'])
@@ -58,6 +61,7 @@ def get_transactions():
     ax = json.loads(last_bl_trans)
     trans = ax['transactions']
     return jsonify(trans), 200
+
 
 # Get money sent from verified transactions
 @app.route('/transactions/money/sent', methods=['GET'])
@@ -73,6 +77,7 @@ def get_money_sent():
     #print(value)
     return jsonify(value), 200
 
+
 # Get money received from verified transactions
 @app.route('/transactions/money/received', methods=['GET'])
 def get_money_received():
@@ -86,6 +91,7 @@ def get_money_received():
                 value += tr['amount']
     #print(value)
     return jsonify(value), 200
+
 
 # Create a transaction on frontend
 @app.route('/transactions/create/browser', methods=['POST'])
@@ -114,6 +120,7 @@ def create_browser_transaction():
         response = 'The public key of receiver is not valid.'
         return jsonify(response), 400
 
+
 # Create a transaction
 @app.route('/transactions/create', methods=['POST'])
 def create_transaction():
@@ -130,6 +137,7 @@ def create_transaction():
     response = 'success'
     return jsonify(response), 200
 
+
 # Broadcast transaction
 @app.route('/broadcast/transaction', methods=['POST'])
 def broadcast_transaction():
@@ -143,6 +151,7 @@ def broadcast_transaction():
     else:
         response = 'error'
         return jsonify(response), 409
+
 
 # Broadcast node ring to other nodes
 @app.route('/broadcast/ring', methods=['POST'])
@@ -168,6 +177,7 @@ def broadcast_block():
     Thread(target=new_node.valid_block(block)).start()
     return jsonify(response), 200
 
+
 # Register node to bootstrap ring
 @app.route('/nodes/register', methods=['POST'])
 def register_node():
@@ -177,9 +187,13 @@ def register_node():
     response = 'success'
     return jsonify(response), 200
 
-#----------------------------------------------------------------------#
-#--------------------- RES API FOR FRONTEND --------------------------#
-#----------------------------------------------------------------------#
+#####################################################################
+# ----------------------------------------------------------------- #
+# --------------------- RESΤ API FOR FRONTEND --------------------- #
+# ----------------------------------------------------------------- #
+#####################################################################
+
+
 # Home page
 @app.route('/', methods=['GET'])
 def home():
@@ -193,6 +207,7 @@ def home():
         'MEM_PERCENT': psutil.virtual_memory()[2]
     }
     return render_template('home.html', data=data)
+
 
 # Node's Wallet
 @app.route('/wallet', methods=['GET'])
@@ -217,11 +232,13 @@ def wallet():
     }
     return render_template("wallet.html", data=data)
 
+
 # Help
 @app.route('/help', methods=['GET'])
 def help():
     session['viewing'] = 'help'
     return render_template('help.html')
+
 
 # About
 @app.route('/about', methods=['GET'])
@@ -229,33 +246,45 @@ def about():
     session['viewing'] = 'about'
     return render_template("about.html")
 
+
 # Contact
 @app.route('/contact', methods=['GET'])
 def contact():
     session['viewing'] = 'contact'
     return render_template("contact.html")
 
+
+# Contact
+@app.route('/blockchain', methods=['GET'])
+def blockchain():
+    session['viewing'] = 'blockchain'
+    return render_template("blockchain.html", data=new_node.blockchain.to_od())
+
 ##############################################################################################
 
-# Function to read file for transactions
-def read_file(node, number_of_nodes):
-    while len(node.ring) < number_of_nodes:
-        time.sleep(60)
-        print('Nop')
-        pass
-    print("Reading file of transactions!")
-    f = open("./transactions/" + number_of_nodes + "nodes/transactions" + str(node.id[2:]) + ".txt", "r")
+# # Function to read file for transactions
+# def read_file(node, number_of_nodes):
+#     while len(node.ring) < number_of_nodes:
+#         time.sleep(60)
+#         print('Nop')
+#         pass
+#     print("Reading file of transactions!")
+#     f = open("./transactions/" + number_of_nodes + "nodes/transactions" + str(node.id[2:]) + ".txt", "r")
+#
+#     for line in f:
+#         node_id, value = (f.readline()).split()
+#         for nodes in node.ring:
+#             if nodes.get('id') == node_id[2:]:
+#                 receiver = nodes.get("public_key")
+#                 node.create_transaction(node.public, receiver, int(value))
+#                 #Thread(target = node.create_transaction, args = (node.public, receiver, int(value),)).start()
+#                 time.sleep(5)
+#                 break
+#     print('My transactions finished!')
 
-    for line in f:
-        node_id, value = (f.readline()).split()
-        for nodes in node.ring:
-            if nodes.get('id') == node_id[2:]:
-                receiver = nodes.get("public_key")
-                node.create_transaction(node.public, receiver, int(value))
-                #Thread(target = node.create_transaction, args = (node.public, receiver, int(value),)).start()
-                time.sleep(5)
-                break
-    print('My transactions finished!')
+
+
+
 
 # .......................................................................................
 # Function for node

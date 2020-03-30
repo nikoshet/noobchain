@@ -16,6 +16,10 @@
             </li>
 
             <li class="nav-link">
+                <a class="nav-link {{'active' if 'blockchain'==session['viewing'] }}" href="{{ url_for('.blockchain') }}">Blockchain</a>
+            </li>
+
+            <li class="nav-link">
                 <a class="nav-link {{ 'active' if 'help'==session['viewing'] }}" href="{{ url_for('.help') }}">Help</a>
             </li>
 

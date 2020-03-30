@@ -1,0 +1,49 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-1"></div>
+        <div class="col-10">
+            <div class="jumbotron">
+                <div class="container" xmlns="http://www.w3.org/1999/html">
+                    <div class="row">
+                        <div class="col s8">
+                            <div class="card-header"><h5 style="color:#fff">Current Blockchain:</h5></div>
+                            <div class="card-body">
+
+                                {% for block in data['blockchain'] %}
+                                    <div class="card border-secondary mb-4">
+                                        <table class="table table-hover" style="color:#fff">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">Block ID: {{ block['index'] }}</th>
+                                                <th scope="col">Hash: {{ block['current_hash'] }}</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr class="table-active">
+                                                <td>Previous Hash: {{ block['previous_hash'] }}</td>
+                                                <td>Timestamp: {{ block['timestamp'] }}</td>
+                                                <td>Nonce: {{ block['nonce'] }}</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p style="margin-bottom:0.2cm;"></p>
+                                {% endfor %}
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="margin-bottom:1cm;"></p>
+                    <p style="margin-bottom:1cm;"></p>
+                    <p style="margin-bottom:1cm;"></p>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-1"></div>
+    </div>
+
+{% endblock %}

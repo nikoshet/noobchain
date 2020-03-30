@@ -19,7 +19,7 @@ class Transaction:
         self.change = 0
         self.node_id = ids
 
-        if not genesis and self.wallet != None:  # if we have a none wallet it means we just want the OD constructor
+        if not genesis and self.wallet is not None:  # if we have a none wallet it means we just want the OD constructor
             total_utxo = 0
             for id in self.transaction_inputs:
                 total_utxo += wallet.utxos[id]
@@ -30,8 +30,10 @@ class Transaction:
             Transaction._id += 1
             self.transaction_outputs.append(
                 {str(self.node_id) + str(Transaction._id): (self.receiver_address, self.change)})
-        elif self.wallet != None:
+
+        elif self.wallet is not None:
             self.transaction_outputs.append({"id0"+str(Transaction._id): (self.receiver_address, self.amount)})
+
         Transaction._id += 1
 
     def to_od(self):

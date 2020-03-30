@@ -254,12 +254,11 @@ def contact():
     return render_template("contact.html")
 
 
-# Contact
+# Current Blockchain
 @app.route('/blockchain', methods=['GET'])
 def blockchain():
     session['viewing'] = 'blockchain'
-
-    return render_template("blockchain.html", data=new_node.blockchain.to_od())
+    return render_template("blockchain.html", data=new_node.blockchain.to_od_with_hash())
 
 
 # Custome filter to convert UNIX time to HUMAN TIME

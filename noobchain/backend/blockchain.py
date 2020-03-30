@@ -146,6 +146,13 @@ class Blockchain:
 
     def to_od(self):
         od = OrderedDict([
+            ('blockchain', [block.to_od() for block in self.blocks])
+        ])
+
+        return od
+
+    def to_od_with_hash(self):
+        od = OrderedDict([
             ('blockchain', [(block.to_od(), block.current_hash) for block in self.blocks])
         ])
 

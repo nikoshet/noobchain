@@ -115,7 +115,7 @@ class Blockchain:
                                                   transaction_inputs=t["transaction_inputs"],
                                                   ids=t["node_id"])
 
-                        transaction.transaction_id = int(t["transaction_id"])
+                        transaction.transaction_id = t["transaction_id"]
                         transaction.signature = t["signature"]
                         transaction.transaction_outputs = t["transaction_outputs"]
                         transaction.change = int(t["change"])

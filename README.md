@@ -33,6 +33,7 @@ Blockchain Project for 'Distributed Systems' M.Sc. Course 2019-2020.
 | /help    | GET | User Manual                |
 | /about   | GET | Application Information    |
 | /contact | GET | Contact page               |
+| /blockchain | GET | View Current Blockchain      |
 
 ## Project Structure
 ```

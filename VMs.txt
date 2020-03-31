@@ -1,21 +1,24 @@
-public IP:83.212.77.3 - hmmytasion01
+VM Ubuntu Servers
 
-hmmytasion01
-user@snf-12256.ok-kno.grnetcloud.net
-user:cHCfiRZM5w
+IPv4 83.212.77.3 - hmmytasion1
 
-hmmytasion02
-user@snf-12257.ok-kno.grnetcloud.net
-user:jQqYDjLo5G
+hmmytasion1
+user@snf-12646.ok-kno.grnetcloud.net
+user:tEom7dHaPp
 
-hmmytasion03
-user@snf-12258.ok-kno.grnetcloud.net
-user:7QyRONPz0K
+hmmytasion2
+user@snf-12647.ok-kno.grnetcloud.net
+user:Q1L1vFbiOq
 
-hmmytasion04
-user@snf-12259.ok-kno.grnetcloud.net
-user:CqWyaVfe6f
+hmmytasion3
+user@snf-12648.ok-kno.grnetcloud.net
+user:l1HeeLoeW2
 
-hmmytasion05
-user@snf-12260.ok-kno.grnetcloud.net
-user:gscQAF95vb
+hmmytasion4
+user@snf-12649.ok-kno.grnetcloud.net
+user:MUG5EbfKqE
+
+hmmytasion5
+user@snf-12650.ok-kno.grnetcloud.net
+user:N6zrZqXZj4
+

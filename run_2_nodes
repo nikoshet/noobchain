@@ -1,0 +1,33 @@
+#!/bin/bash
+#chmod +x run_2_nodes
+#sudo ./run_2_nodes -i snf-12646.ok-kno.grnetcloud.net -p 1000 -t False -b snf-12646.ok-kno.grnetcloud.net -n 5 -c 2 -d 4
+#sudo ./run_2_nodes -i 0.0.0.0 -p 1000 -t False -b 0.0.0.0 -n 5 -c 2 -d 4
+#sudo ./run_2_nodes -i 0.0.0.0 -p 1000 -t True -b 0.0.0.0 -n 5 -c 2 -d 4
+
+while getopts i:p:t:b:n:c:d: option
+do
+case "${option}"
+in
+i) IP=${OPTARG};;
+p) PORT=${OPTARG};;
+t) BOOTSTRAP=${OPTARG};;
+b) IP_BOOTSTRAP=${OPTARG};;
+n) NODES=${OPTARG};;
+c) CAPACITY=${OPTARG};;
+d) DIFFICULTY=${OPTARG};;
+esac
+done
+
+
+python3 noobchain/main.py -ip $IP -p $PORT -bootstrap $BOOTSTRAP -ip_bootstrap $IP_BOOTSTRAP -nodes $NODES -cap $CAPACITY -dif $DIFFICULTY &
+
+{
+#echo $PORT
+# sleep 3 secs
+sleep 3 
+
+PORT=$((++PORT)) 
+echo $PORT
+
+python3 noobchain/main.py -ip $IP -p $PORT -bootstrap False -ip_bootstrap $IP_BOOTSTRAP -nodes $NODES -cap $CAPACITY -dif $DIFFICULTY} &
+wait

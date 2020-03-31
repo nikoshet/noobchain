@@ -9,6 +9,7 @@ import json
 from backend.node import Node
 from datetime import datetime
 from flask_cors import CORS
+import os
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sec_key'
@@ -164,7 +165,8 @@ def broadcast_ring():
     for node in new_node.ring:
         if node["public_key"] == new_node.public:
             new_node.id="id"+str(node["id"])
-            with open("./public_keys/key"+str(node["id"])+".txt", "w") as key_file:
+            my_path = os.path.abspath(os.path.dirname(__file__))
+            with open(os.path.join(my_path, "./public_keys/key"+str(node["id"])+".txt"), "w") as key_file:
                 key_file.write(new_node.public)
     response = 'success'
     return jsonify(response), 200

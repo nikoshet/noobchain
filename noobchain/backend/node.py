@@ -408,7 +408,7 @@ class Node:
 
         my_path = os.path.abspath(os.path.dirname(__file__))
         file = os.path.join(my_path, f'../transactions/{self.no_of_nodes}nodes/transactions{self.id[2:]}.txt')
-	print("Reading file of transactions!")
+        print("Reading file of transactions!")
         with open(file, 'r') as file:
             for line in file:
                 node_id, amount = line.split()
@@ -417,5 +417,5 @@ class Node:
                 receiver = self.ring[int(node_id[2:])].get('public_key')
                 self.create_transaction(self.public, receiver, int(amount))
                 time.sleep(5)
-	print('My transactions finished!')
+        print('My transactions finished!')
 

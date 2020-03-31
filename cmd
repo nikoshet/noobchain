@@ -42,15 +42,15 @@ sudo ufw allow 1000
 
 
 
-sudo python3 noobchain/main_het.py 
+sudo python3 noobchain/main.py 
 
-sudo python3 noobchain/main_het.py -p 2000 -bootstrap False -ip_bootstrap 83.212.77.3
+sudo python3 noobchain/main.py -p 2000 -bootstrap False -ip_bootstrap 83.212.77.3
 
-sudo python3 noobchain/main_het.py -p 3000 -bootstrap False -ip_bootstrap 83.212.77.3
+sudo python3 noobchain/main.py -p 3000 -bootstrap False -ip_bootstrap 83.212.77.3
 
-sudo python3 noobchain/main_het.py -p 4000 -bootstrap False -ip_bootstrap 83.212.77.3
+sudo python3 noobchain/main.py -p 4000 -bootstrap False -ip_bootstrap 83.212.77.3
 
-sudo python3 noobchain/main_het.py -p 5000 -bootstrap False -ip_bootstrap 83.212.77.3
+sudo python3 noobchain/main.py -p 5000 -bootstrap False -ip_bootstrap 83.212.77.3
 
 
 

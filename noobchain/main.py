@@ -23,7 +23,7 @@ parser.add_argument('-p', '--port', default=1000, type=int, help='port to listen
 parser.add_argument('-bootstrap', default='True', type=str, help='is node bootstrap?')
 parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
 parser.add_argument('-port_bootstrap', default=1000, type=int, help='port of bootstrap')
-parser.add_argument('-nodes', default=3, type=int, help='number of nodes')
+parser.add_argument('-nodes', default=5, type=int, help='number of nodes')
 parser.add_argument('-cap', default=2, type=int, help='capacity of blocks')
 parser.add_argument('-dif', default=4, type=int, help='difficulty')
 #args = parser.parse_args()
@@ -111,9 +111,18 @@ def create_browser_transaction():
         response = 'The amount of NBCs is not valid.'
         return jsonify(response), 400
 
+    elif sender == receiver:
+        response = 'Sender public key is the same with the receiver public key.'
+        return jsonify(response), 400
+
+    elif new_node.public != sender:
+        response = 'This is not your public key.'
+        return jsonify(response), 400
+
     elif sender != new_node.public:
         response = 'Your public key is not valid.'
         return jsonify(response), 400
+
     else:
         for node in new_node.ring:
             if node["public_key"] == receiver:

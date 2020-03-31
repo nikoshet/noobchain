@@ -38,8 +38,8 @@ class Wallet:
     def wallet_balance(self):
         balance = 0
         for key, value in self.utxos.items():
-            print(value)
             balance += value
+        print('Balance:', balance, 'NBC coins')
         return balance
 
     def get_public_key(self):

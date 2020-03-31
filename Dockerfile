@@ -1,26 +1,29 @@
-#FROM frolvlad/alpine-python3:latest
 FROM python:3.7.7-slim-stretch
 #FROM python:3.7.7-stretch
 
 MAINTAINER Noobcash Blockchain
 
-RUN apt-get update && apt-get install gcc -y
+# Environment Variables
+ENV IP                   0.0.0.0
+ENV PORT                 1000
+ENV BOOTSTRAP            True
+ENV IP_BOOTSTRAP	 0.0.0.0 
+ENV PORT_BOOTSTRAP	 1000
+ENV NODES		 5
+ENV CAPACITY		 2
+ENV DIFFICuLTY		 4
 
-#RUN apk update  && apk add --no-cache gcc 
-#-y && \
-    #apk install -y python-pip python-dev
-  #apk add --no-cache gcc 
-
+# Copy files
 COPY ./requirements.txt /app/requirements.txt
-
-WORKDIR /app
-
-RUN pip install -r requirements.txt
-
 COPY . /app
 
-#ENTRYPOINT ["python3","noobchain/rest.py"]
+# Set working directory
+WORKDIR /app
 
-#CMD python3 noobchain/main.py
+RUN apt-get update && apt-get install gcc -y && \
+	pip install -r requirements.txt
 
-CMD python3 noobchain/main.py 0.0.0.0 1000 TRUE 0.0.0.0 1000 3 5 2
+# Final command
+#ENTRYPOINT ["python3","-u","noobchain/main_het.py","-ip ${IP} -p ${PORT} -bootstrap ${BOOTSTRAP} -ip_bootstrap ${IP_BOOTSTRAP} -port_bootstrap ${PORT_BOOTSTRAP} -nodes ${NODES} -cap ${CAPACITY} -dif ${DIFFICuLTY}"]
+
+#ENTRYPOINT ["python3","-u","noobchain/main_het.py"]

@@ -1,0 +1,15 @@
+id2 6
+id4 8
+id0 9
+id2 10
+id1 8
+id2 9
+id2 7
+id4 5
+id4 2
+id0 7
+id4 8
+id1 3
+id1 7
+id1 9
+id1 3

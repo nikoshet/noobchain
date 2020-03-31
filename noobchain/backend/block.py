@@ -21,6 +21,8 @@ class Block:
             ('index', self.index),
             ('timestamp', self.timestamp),
             ('transactions', ([self.trans_to_od(trans) for trans in self.transactions])),
+            #('transactions', ([trans.to_od() for trans in self.transactions])),
+            #('transactions', ([trans for trans in self.transactions])),
             ('nonce', self.nonce),
             ('previous_hash', self.previous_hash)
         ])

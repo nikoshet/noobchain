@@ -134,14 +134,14 @@ class Blockchain:
                 print(f'Collected chain')
                 # If bigger is to be found, replace existing chain
                 if len(tmp_blockchain) > len(self.blocks) and self.validate_chain(tmp_blockchain):
-                    print("\n\n\n\n\nI changed my blockchain WOOHOO!")
+                    print("\n\n\nI changed my blockchain WOOHOO!")
                     self.blocks = tmp_blockchain
                     return True
                 elif len(tmp_blockchain) == len(self.blocks):
                     print("We are equal")
                     return False
                 else:
-                    print("MINE IS BIGGER AND BETTER")
+                    print("\nMy blockchain is bigger and better!!!!!!!")
                     return False
 
     def to_od(self):

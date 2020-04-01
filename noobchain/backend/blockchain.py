@@ -9,7 +9,7 @@ import time
 
 
 class Blockchain:
-    def __init__(self, ring, my_id):
+    def __init__(self, ring, my_id, no_of_nodes):
 
         self.ring = ring  # List of ring nodes
 
@@ -17,7 +17,7 @@ class Blockchain:
         self.genesis = Block(index=0, previous_hash=1, transactions=[], nonce=0)
         self.my_id = my_id
         # Genesis transaction
-        transaction = Transaction(sender_address="0", receiver_address=self.ring[0]['public_key'], amount=500,
+        transaction = Transaction(sender_address="0", receiver_address=self.ring[0]['public_key'], amount=no_of_nodes*100,
                                   transaction_inputs='', wallet=None, ids="id0", genesis=True)
 
         self.genesis.transactions.append(transaction)

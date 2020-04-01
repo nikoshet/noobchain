@@ -52,11 +52,11 @@ class Node:
 
         if self.is_bootstrap:
             self.id = 'id0'
-            self.wallet.utxos["id00"]=500
-            self.blockchain = Blockchain(self.ring,self.id)
+            self.wallet.utxos["id00"]=self.no_of_nodes*100
+            self.blockchain = Blockchain(self.ring,self.id, self.no_of_nodes)
 
         else:
-            self.wallet.others_utxos["id0"] = [("id00", 500)]
+            self.wallet.others_utxos["id0"] = [("id00", self.no_of_nodes*100)]
 
             # Not sure about the runtime of this thread, uncomment
             Thread(target=self.register_on_bootstrap).start()
@@ -215,7 +215,7 @@ class Node:
 
         # if I am not the bootstrap I dont have a blockchain
         if self.blockchain is None:
-            self.blockchain = Blockchain(self.ring, self.id)
+            self.blockchain = Blockchain(self.ring, self.id, self.no_of_nodes)
 
         # check signature and value of the transaction
         if self.verify_value(transaction) and self.verify_signature(transaction, sender):

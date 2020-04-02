@@ -5,7 +5,6 @@ from backend.wallet import Wallet
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA
-import re
 import os
 import requests
 from flask import jsonify
@@ -15,8 +14,6 @@ from backend.transaction import Transaction
 from collections import OrderedDict
 from base64 import b64decode
 from copy import deepcopy
-
-import binascii
 
 
 class Node:
@@ -391,7 +388,8 @@ class Node:
                                              not (i["transaction_id"] in transactions_ids_in_block)]
         print('Current length of blockchain:',len(self.blockchain.blocks),'blocks')
         # keep the dream alive
-        if len(self.pending_transactions)!=0:
+        #if len(self.pending_transactions)!=0:
+        if len(self.pending_transactions) >= self.capacity:
             self.mine_new_block()
         return
 

@@ -1,11 +1,8 @@
 from backend.block import Block
 from backend.transaction import Transaction
-import json
 import requests
 from collections import OrderedDict
-from hashlib import sha256
 import json
-import time
 
 
 class Blockchain:

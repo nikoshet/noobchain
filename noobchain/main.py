@@ -25,8 +25,8 @@ parser.add_argument('-bootstrap', default='False', type=str, help='is node boots
 #parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
 parser.add_argument('-ip_bootstrap', default='127.0.0.1', type=str, help='ip of bootstrap')
 parser.add_argument('-port_bootstrap', default=1000, type=int, help='port of bootstrap')
-parser.add_argument('-nodes', default=5, type=int, help='number of nodes')
-parser.add_argument('-cap', default=7, type=int, help='capacity of blocks')
+parser.add_argument('-nodes', default=3, type=int, help='number of nodes')
+parser.add_argument('-cap', default=5, type=int, help='capacity of blocks')
 parser.add_argument('-dif', default=4, type=int, help='difficulty')
 #args = parser.parse_args()
 args, _ = parser.parse_known_args()
@@ -74,12 +74,10 @@ def get_money_sent():
     value = 0
     for blk in new_node.blockchain.blocks:
         blk = json.loads(blk.to_json())
-        #print(blk)
         trans = blk['transactions']
         for tr in trans:
             if tr['sender_address'] == new_node.public:
                 value += tr['amount']
-    #print(value)
     return jsonify(value), 200
 
 
@@ -89,12 +87,10 @@ def get_money_received():
     value = 0
     for blk in new_node.blockchain.blocks:
         blk = json.loads(blk.to_json())
-        #print(blk)
         trans = blk['transactions']
         for tr in trans:
             if tr['receiver_address'] == new_node.public:
                 value += tr['amount']
-    #print(value)
     return jsonify(value), 200
 
 
@@ -143,10 +139,9 @@ def create_transaction():
     receiver = trans['receiver_address']
     amount = trans['amount']
     for node in new_node.ring:
-        if node["id"]==sender[2:]: sender = node["public_key"]
-        if node["id"]==receiver[2:]: receiver = node["public_key"]
-    #print("SEN", sender, "RES", sender)
-    time.sleep(0.5)
+        if node["id"] == sender[2:]: sender = node["public_key"]
+        if node["id"] == receiver[2:]: receiver = node["public_key"]
+    # time.sleep(0.5)
     new_node.create_transaction(sender, receiver, int(amount))
     response = 'success'
     return jsonify(response), 200
@@ -171,7 +166,6 @@ def broadcast_transaction():
 @app.route('/broadcast/ring', methods=['POST'])
 def broadcast_ring():
     message = request.get_json()
-    #print(message)
     new_node.ring = json.loads(message)
     for node in new_node.ring:
         if node["public_key"] == new_node.public:
@@ -281,29 +275,16 @@ def blockchain():
 @app.template_filter('ctime')
 def timectime(s):
     return time.ctime(s)
-##############################################################################################
 
-# Function for node
-#def start_new_node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes):
-#    time.sleep(3)
-#    print("New node")
-#    new_node = Node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes)
-
-# Start node
-#t_node = Thread(target=start_new_node, args=(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes))
-#t_node.start()
-
-#def start_new_flask_app(ip, port):
-#    app.run(host=ip, port=port, debug=False, use_reloader=False)
-    #from waitress import serve
-    #serve(app, host=ip, port=port)
-
-print(f'Inputs: {HOST}, {PORT}, {boot}, {ip_of_bootstrap}, {port_of_bootstrap}, {no_of_nodes}, {capacity}, {difficulty}')
 
 if __name__ == '__main__':
 
+    print(f'\nHost\'s IP: {HOST}, Host\'s Port: {PORT}, Bootstrap Node: {boot}')
+    print(f'Boostrap\'s IP: {ip_of_bootstrap}, Boostrap\'s Port: {port_of_bootstrap}')
+    print(f'Nodes in the network: {no_of_nodes}, Block\'s Capacity: {capacity}, Mining Difficulty: {difficulty}\n')
+
     # Start Flask app
     from waitress import serve
-    serve(app, host=HOST, port=PORT, threads=10) #, debug=True, use_reloader=False)
-    #app.run(host=HOST, port=PORT, debug=False, use_reloader=False) #True
+    serve(app, host=HOST, port=PORT, threads=5)
+    #app.run(host=HOST, port=PORT, debug=False, use_reloader=False)
     #time.sleep(3)

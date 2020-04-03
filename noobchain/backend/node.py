@@ -59,24 +59,23 @@ class Node:
             Thread(target=self.register_on_bootstrap).start()
             #self.register_on_bootstrap()
 
+        # Thread that permanently reads transactions until they are done
         Thread(target=self.read_file).start()
-        Thread(target=self.mine).start()
 
+        # Thread that permanently attempts to mine if there are enough transactions
+        Thread(target=self.mine).start()
 
     def mine(self):
 
         while True:
             if len(self.pending_transactions) <= self.capacity:
-                #try:
-                #    self.blockchain.resolve_conflict()
-                #except:
-                #    pass
-
                 time.sleep(5)
 
             else:
+                # Update pending Transactions
                 self.remove_trans()
 
+                # Create objects for first n (n = capacity)
                 transactions = []
 
                 # Load transactions for that block
@@ -92,18 +91,18 @@ class Node:
                     transaction.transaction_outputs = t["transaction_outputs"]
                     transaction.change = int(t["change"])
 
-                    # Dont need this?!
-                    # transaction = transaction.to_od()
                     transactions.append(transaction)
 
+                # Create block instance for those transactions
                 block = Block(index=len(self.blockchain.blocks) + 1, nonce=0,
                               transactions=transactions,
                               previous_hash=self.blockchain.blocks[-1].current_hash)
 
+                # Mine block
                 block = self.blockchain.mine_block(block=block, difficulty=self.difficulty)
 
+                # When finish, broadcast it
                 self.blockchain.broadcast_block(block)
-
 
 
     def __str__(self):
@@ -178,32 +177,20 @@ class Node:
             if address != self.address:
                 req = requests.post(address + "/broadcast/ring", json=json.dumps(self.ring))
                 if not req.status_code == 200:
-                    #print(req.text)
                     print('Error:', req.status_code)
                 else:
                     print('Successful registration on bootstrap node from node:', address)
 
-        ## lastly broadcast it to ourselves because we want to have the same json, just to be sure
-        #for member in self.ring:
-        #    address = member.get('address')
-        #    if address == self.address:
-        #        req = requests.post(address + "/broadcast/ring", json=json.dumps(self.ring))
-        #        if not req.status_code == 200:
-        #            #print(req.text)
-        #            print('Error:', req.status_code)
-        #        else:
-        #            print('Successful registration on bootstrap node from node:', address)
-        
 
     ### Transaction functions ###
 
     def create_transaction(self, sender_address, receiver_address, value):
-        tmp=0
-        trans_input=[]
+        tmp = 0
+        trans_input = []
         for key, available in self.wallet.utxos.items():
-            if tmp<value:
+            if tmp < value:
                 trans_input.append(key)
-                tmp+=available
+                tmp += available
         my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address, amount=value,
                                transaction_inputs=trans_input, wallet=self.wallet, ids=self.id)
         my_trans.signature = Wallet.sign_transaction(self.wallet, my_trans)
@@ -219,11 +206,9 @@ class Node:
             if address != self.address:
                 # Post request
                 # send to ring.sender
-                req = requests.post(address + "/broadcast/transaction", json=json.dumps(message))# data=jsonify(message))
+                req = requests.post(address + "/broadcast/transaction", json=json.dumps(message))
                 if not req.status_code == 200:
                     print('Error:', req.status_code)
-                #else:
-                #    print('Success on broadcasting transaction on node:', address)
 
         # also broadcast it to ourselves because we have the object and we want the json,
         # we are leveling everything between the boot and the nodes
@@ -233,24 +218,11 @@ class Node:
             if address == self.address:
                 # Post request
                 # send to ring.sender
-                req = requests.post(address + "/broadcast/transaction", json=json.dumps(message))# data=jsonify(message))
+                req = requests.post(address + "/broadcast/transaction", json=json.dumps(message))
                 if not req.status_code == 200:
                     print('Error:', req.status_code)
-                #else:
-                #    print('Success on broadcasting transaction on node:', address)
 
     def validate_transaction(self, t, signature, sender):
-        # parse the transaction to ordered dictionary
-        # transaction = OrderedDict([
-        #     ('sender_address', transaction["sender_address"]),
-        #     ('receiver_address', transaction["receiver_address"]),
-        #     ('amount', transaction["amount"]),
-        #     ('transaction_id', transaction["transaction_id"]),
-        #     ('transaction_inputs', transaction["transaction_inputs"]),
-        #     ('transaction_outputs', transaction["transaction_outputs"]),
-        #     ("signature", transaction["signature"]),
-        #     ("change", transaction["change"]),
-        #     ("node_id", transaction["node_id"])])
 
         transaction = Transaction(sender_address=t["sender_address"],
                                   receiver_address=t["receiver_address"],
@@ -283,7 +255,8 @@ class Node:
 
 
     def verify_value(self, trans):
-        #check that the utxos of the sender are enough to create this transaction and he is not cheating
+
+        # check that the utxos of the sender are enough to create this transaction and he is not cheating
         id_sender = trans.node_id
         amount = trans.amount
         to_be_checked = trans.transaction_inputs
@@ -298,9 +271,7 @@ class Node:
         if available_money >= amount:
             return True
         else:
-            #print(amount)
             print("\nNot Enough UTXOS:", 'amount:', amount, ', available money:', available_money)
-            #print(available_money)
             return False
 
     def verify_signature(self, trans, pub_key):
@@ -308,12 +279,10 @@ class Node:
         # transform the json/dictionary to ordered dictionary format so that we have the same hash
         to_test = deepcopy(trans)
         to_test.signature = ""
-        #to_test = json.dumps(to_test, default=str)
         to_test = to_test.to_json()
         h = SHA.new(to_test.encode('utf8'))
         public_key = RSA.importKey(pub_key)
         sign_to_test = PKCS1_v1_5.new(public_key)
-
 
         if sign_to_test.verify(h, b64decode(trans.signature)):
             return True
@@ -347,7 +316,7 @@ class Node:
 
         # If I was the one getting money upgrade my utxos
         if trans.receiver_address == self.public:
-            portofoli.utxos[list(trans.transaction_outputs[0].keys())[0]]=trans.transaction_outputs[0][list(trans.transaction_outputs[0].keys())[0]][1]
+            portofoli.utxos[list(trans.transaction_outputs[0].keys())[0]] = trans.transaction_outputs[0][list(trans.transaction_outputs[0].keys())[0]][1]
             i_got_money = True
 
         # If I was the one sending money delete the utxos that I used from wallet
@@ -355,8 +324,8 @@ class Node:
         if trans.sender_address == self.public:
             for utxos_spend in trans.transaction_inputs:
                 del portofoli.utxos[utxos_spend]
-            if trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]>0:
-                portofoli.utxos[list(trans.transaction_outputs[1].keys())[0]]=trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]
+            if trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1] > 0:
+                portofoli.utxos[list(trans.transaction_outputs[1].keys())[0]] = trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]
             i_got_change = True
 
         # Again if I was the one that got money I have to fix the utxos of the sender
@@ -367,7 +336,7 @@ class Node:
                     items_to_remove.append(item)
             for item in items_to_remove:
                 portofoli.others_utxos[id_sender].remove(item)
-            if trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]>0:
+            if trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1] > 0:
                 portofoli.others_utxos[id_sender].append((list(trans.transaction_outputs[1].keys())[0],
                                                           trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]))
         
@@ -394,29 +363,26 @@ class Node:
             for item in items_to_remove:
                 portofoli.others_utxos[id_sender].remove(item)
             
-            if trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]>0:
+            if trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1] > 0:
                 portofoli.others_utxos[id_sender].append((list(trans.transaction_outputs[1].keys())[0],
                                                           trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]))
         return
 
 
-    # def create_new_block(self, previous_hash, nonce):
-    #     new_block_index = len(self.blockchain.blocks)
-    #     self.new_block = Block(new_block_index, [], nonce, previous_hash)
-    #     # return True
-    #     self.blockchain.append(self.new_block)
-
-
     def remove_trans(self):
 
-        done = []
-        for block in self.blockchain.blocks:
-            for trans in block.transactions:
-                done.append(trans.to_od())
+        # done = []
+        # for block in self.blockchain.blocks:
+        #     for trans in block.transactions:
+        #         done.append(trans.to_od())
 
-        dd = [trans for trans in self.pending_transactions if trans not in done]
+        # dd = [trans for trans in self.pending_transactions if trans not in done]
 
-        self.pending_transactions = dd
+        # Transactions that have already been done
+        done = [trans.to_od() for block in self.blockchain.blocks for trans in block.transactions]
+
+        # Keep transactions that you have validated, but they are not in blockchain
+        self.pending_transactions = [trans for trans in self.pending_transactions if trans not in done]
 
 
     def valid_block(self, block_received):
@@ -436,7 +402,6 @@ class Node:
             transaction.change = int(t["change"])
 
             # Dont need this?!
-            # transaction = transaction.to_od()
             transactions.append(transaction)
 
         block = Block(index=block_received["index"], transactions=transactions, nonce=block_received["nonce"],
@@ -444,17 +409,23 @@ class Node:
 
         block.current_hash = block.get_hash()
 
-        print('Current length of blockchain:', len(self.blockchain.blocks), 'blocks')
+        # print('Current length of blockchain:', len(self.blockchain.blocks), 'blocks')
 
         if self.blockchain.validate_block(block, self.difficulty):
 
+            # This block is validated, add it to the chain
             self.blockchain.add_block(block)
 
+            # Update self transactions
             self.remove_trans()
-            print(f'TODO {len(self.pending_transactions)}')
+
+            print(f'Just Added a Block to my chain! Current Length {len(self.blockchain.blocks)}.')
+            print(f'Pending Transactions to do: {len(self.pending_transactions)}')
 
             return True
 
+        # Reaching here means i failed to validate that block, therefore try to resolve my chain
+        print(f'Failed to Validate that Block, forcing Blockchain Update')
         self.blockchain.resolve_conflict()
         return False
 
@@ -465,7 +436,7 @@ class Node:
 
         my_path = os.path.abspath(os.path.dirname(__file__))
         file = os.path.join(my_path, f'../transactions/{self.no_of_nodes}nodes/transactions{self.id[2:]}.txt')
-        print("Reading file of transactions!")
+        print('Reading file of transactions!')
         with open(file, 'r') as file:
             for line in file:
                 node_id, amount = line.split()
@@ -473,8 +444,6 @@ class Node:
                 # get address based on index
                 receiver = self.ring[int(node_id[2:])].get('public_key')
                 self.create_transaction(self.public, receiver, int(amount))
-                ################## poso time sleep???????????? ##################
-                ################## poso time sleep???????????? ##################
-                ################## poso time sleep???????????? ##################
-                time.sleep(1)
+                # time.sleep(1)
+
         print('My transactions finished!')

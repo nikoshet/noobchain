@@ -49,32 +49,30 @@ class Node:
 
         if self.is_bootstrap:
             self.id = 'id0'
-            self.wallet.utxos["id00"]=self.no_of_nodes*100
-            self.blockchain = Blockchain(self.ring,self.id, self.no_of_nodes)
+            self.wallet.utxos["id00"] = self.no_of_nodes*100
+            self.blockchain = Blockchain(self.ring, self.id, self.no_of_nodes)
 
         else:
             self.wallet.others_utxos["id0"] = [("id00", self.no_of_nodes*100)]
 
             # Not sure about the runtime of this thread, uncomment
             Thread(target=self.register_on_bootstrap).start()
-            #self.register_on_bootstrap()
 
+        # Thread that permanently reads transactions until they are done
         Thread(target=self.read_file).start()
-        Thread(target=self.mine).start()
 
+        # Thread that permanently attempts to mine if there are enough transactions
+        Thread(target=self.mine).start()
 
     def mine(self):
 
         while True:
             if len(self.pending_transactions) <= self.capacity:
-                #try:
-                #    self.blockchain.resolve_conflict()
-                #except:
-                #    pass
-
+                # Take a nap while waiting for block to fill up
                 time.sleep(5)
 
             else:
+                # Update pending transactions
                 self.remove_trans()
 
                 transactions = []
@@ -92,19 +90,18 @@ class Node:
                     transaction.transaction_outputs = t["transaction_outputs"]
                     transaction.change = int(t["change"])
 
-                    # Dont need this?!
-                    # transaction = transaction.to_od()
                     transactions.append(transaction)
 
-                block = Block(index=len(self.blockchain.blocks) + 1, nonce=0,
+                # Block to mine
+                block = Block(index=len(self.blockchain.blocks), nonce=0,
                               transactions=transactions,
                               previous_hash=self.blockchain.blocks[-1].current_hash)
 
+                # Mined block (proof of work)
                 block = self.blockchain.mine_block(block=block, difficulty=self.difficulty)
 
+                # Broadcast it to everyone
                 self.blockchain.broadcast_block(block)
-
-
 
     def __str__(self):
         return f'------ PRINTING DETAILS FOR USER: [{self.ip}] ------' \
@@ -146,12 +143,9 @@ class Node:
         node_address = message.get('address')
         public_key = message.get('public_key')
         self.ring.append({'id': str.join('id', str(len(self.ring))), 'public_key': public_key, 'address': node_address})
-        #print(self.ring)
 
         # Broadcast ring to all nodes
         if len(self.ring) == self.no_of_nodes:
-            #Thread(target=self.broadcast_ring_to_nodes).start()
-            #Thread(target=self.respond_to_node).start()
             self.broadcast_ring_to_nodes()
             self.respond_to_node()
 
@@ -163,14 +157,8 @@ class Node:
             if address != self.address:
                 print('Responding to node:', i)
                 i += 1
-                # address = member.get('address')
                 public_key = member.get('public_key')
-                # message = {'sender': self.address, 'receiver': address,
-                #          'value': value}
-                # req = requests.post(address, jsonify(message))
                 self.create_transaction(self.wallet.public_key, public_key, value)
-                # if len(self.ring) == self.no_of_nodes:
-                #    self.broadcast_ring_to_nodes()
 
     def broadcast_ring_to_nodes(self):
         for member in self.ring:
@@ -183,27 +171,15 @@ class Node:
                 else:
                     print('Successful registration on bootstrap node from node:', address)
 
-        ## lastly broadcast it to ourselves because we want to have the same json, just to be sure
-        #for member in self.ring:
-        #    address = member.get('address')
-        #    if address == self.address:
-        #        req = requests.post(address + "/broadcast/ring", json=json.dumps(self.ring))
-        #        if not req.status_code == 200:
-        #            #print(req.text)
-        #            print('Error:', req.status_code)
-        #        else:
-        #            print('Successful registration on bootstrap node from node:', address)
-        
-
     ### Transaction functions ###
 
     def create_transaction(self, sender_address, receiver_address, value):
         tmp=0
-        trans_input=[]
+        trans_input = []
         for key, available in self.wallet.utxos.items():
-            if tmp<value:
+            if tmp < value:
                 trans_input.append(key)
-                tmp+=available
+                tmp += available
         my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address, amount=value,
                                transaction_inputs=trans_input, wallet=self.wallet, ids=self.id)
         my_trans.signature = Wallet.sign_transaction(self.wallet, my_trans)
@@ -222,8 +198,6 @@ class Node:
                 req = requests.post(address + "/broadcast/transaction", json=json.dumps(message))# data=jsonify(message))
                 if not req.status_code == 200:
                     print('Error:', req.status_code)
-                #else:
-                #    print('Success on broadcasting transaction on node:', address)
 
         # also broadcast it to ourselves because we have the object and we want the json,
         # we are leveling everything between the boot and the nodes
@@ -240,17 +214,6 @@ class Node:
                 #    print('Success on broadcasting transaction on node:', address)
 
     def validate_transaction(self, t, signature, sender):
-        # parse the transaction to ordered dictionary
-        # transaction = OrderedDict([
-        #     ('sender_address', transaction["sender_address"]),
-        #     ('receiver_address', transaction["receiver_address"]),
-        #     ('amount', transaction["amount"]),
-        #     ('transaction_id', transaction["transaction_id"]),
-        #     ('transaction_inputs', transaction["transaction_inputs"]),
-        #     ('transaction_outputs', transaction["transaction_outputs"]),
-        #     ("signature", transaction["signature"]),
-        #     ("change", transaction["change"]),
-        #     ("node_id", transaction["node_id"])])
 
         transaction = Transaction(sender_address=t["sender_address"],
                                   receiver_address=t["receiver_address"],
@@ -269,11 +232,11 @@ class Node:
 
         # check signature and value of the transaction
         if self.verify_value(transaction) and self.verify_signature(transaction, sender):
+
             # if everything is good change the UTXOS
             self.update_utxos(transaction, self.wallet)
-            # add to list of transactions
-            # self.pending_transactions.append(transaction)
 
+            # add to list of transactions
             self.pending_transactions.append(transaction.to_od())
 
             return True
@@ -281,9 +244,8 @@ class Node:
             print('Error on validating')
             return False
 
-
     def verify_value(self, trans):
-        #check that the utxos of the sender are enough to create this transaction and he is not cheating
+        # check that the utxos of the sender are enough to create this transaction and he is not cheating
         id_sender = trans.node_id
         amount = trans.amount
         to_be_checked = trans.transaction_inputs
@@ -298,9 +260,7 @@ class Node:
         if available_money >= amount:
             return True
         else:
-            #print(amount)
             print("\nNot Enough UTXOS:", 'amount:', amount, ', available money:', available_money)
-            #print(available_money)
             return False
 
     def verify_signature(self, trans, pub_key):
@@ -308,12 +268,10 @@ class Node:
         # transform the json/dictionary to ordered dictionary format so that we have the same hash
         to_test = deepcopy(trans)
         to_test.signature = ""
-        #to_test = json.dumps(to_test, default=str)
         to_test = to_test.to_json()
         h = SHA.new(to_test.encode('utf8'))
         public_key = RSA.importKey(pub_key)
         sign_to_test = PKCS1_v1_5.new(public_key)
-
 
         if sign_to_test.verify(h, b64decode(trans.signature)):
             return True
@@ -321,7 +279,7 @@ class Node:
         print("Wrong signature")
         return False
 
-    def update_utxos(self,trans, portofoli):
+    def update_utxos(self, trans, portofoli):
         # state variables to check wheter I was involved in the transaction
         i_got_money = False
         i_got_change = False
@@ -334,12 +292,12 @@ class Node:
                     id_sender = "id"+str(node["id"])
 
         # check wheter I have created a key in the dictionary for the ones in the current transaction
-        if id_receiver!=self.id:
+        if id_receiver != self.id:
              try:
                 portofoli.others_utxos[id_receiver]
              except:
                 portofoli.others_utxos[id_receiver]=[]
-        if id_sender!=self.id:
+        if id_sender != self.id:
              try:
                  portofoli.others_utxos[id_sender]
              except:
@@ -399,25 +357,21 @@ class Node:
                                                           trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]))
         return
 
-
-    # def create_new_block(self, previous_hash, nonce):
-    #     new_block_index = len(self.blockchain.blocks)
-    #     self.new_block = Block(new_block_index, [], nonce, previous_hash)
-    #     # return True
-    #     self.blockchain.append(self.new_block)
-
-
     def remove_trans(self):
 
+        # Update pending transactions by checking currently validated ones against transactions in blockchain
+
+        # Transactions that have already been done
+        # done = [trans.to_od() for block in self.blockchain.blocks for trans in block.transactions]
         done = []
         for block in self.blockchain.blocks:
             for trans in block.transactions:
                 done.append(trans.to_od())
 
+        # Keep transactions that you have validated, but they are not in blockchain
         dd = [trans for trans in self.pending_transactions if trans not in done]
 
         self.pending_transactions = dd
-
 
     def valid_block(self, block_received):
         transactions = []
@@ -444,17 +398,18 @@ class Node:
 
         block.current_hash = block.get_hash()
 
-        print('Current length of blockchain:', len(self.blockchain.blocks), 'blocks')
-
+        # Try validating block
         if self.blockchain.validate_block(block, self.difficulty):
 
             self.blockchain.add_block(block)
 
             self.remove_trans()
             print(f'TODO {len(self.pending_transactions)}')
+            print(f'-- Added Block in my Chain! --')
 
             return True
 
+        # Else need to update chain
         self.blockchain.resolve_conflict()
         return False
 
@@ -473,8 +428,6 @@ class Node:
                 # get address based on index
                 receiver = self.ring[int(node_id[2:])].get('public_key')
                 self.create_transaction(self.public, receiver, int(amount))
-                ################## poso time sleep???????????? ##################
-                ################## poso time sleep???????????? ##################
-                ################## poso time sleep???????????? ##################
                 time.sleep(1)
+
         print('My transactions finished!')

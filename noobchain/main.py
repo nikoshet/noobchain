@@ -74,12 +74,10 @@ def get_money_sent():
     value = 0
     for blk in new_node.blockchain.blocks:
         blk = json.loads(blk.to_json())
-        #print(blk)
         trans = blk['transactions']
         for tr in trans:
             if tr['sender_address'] == new_node.public:
                 value += tr['amount']
-    #print(value)
     return jsonify(value), 200
 
 
@@ -89,12 +87,10 @@ def get_money_received():
     value = 0
     for blk in new_node.blockchain.blocks:
         blk = json.loads(blk.to_json())
-        #print(blk)
         trans = blk['transactions']
         for tr in trans:
             if tr['receiver_address'] == new_node.public:
                 value += tr['amount']
-    #print(value)
     return jsonify(value), 200
 
 
@@ -103,7 +99,7 @@ def get_money_received():
 def create_browser_transaction():
     sender = str(request.form['sender_address'])
     sender = sender.replace(' ', '\n')
-    sender  = '-----BEGIN RSA PUBLIC KEY-----\n'+ sender + '\n-----END RSA PUBLIC KEY-----'
+    sender = '-----BEGIN RSA PUBLIC KEY-----\n'+ sender + '\n-----END RSA PUBLIC KEY-----'
     receiver = str(request.form['receiver_address'])
     receiver = receiver.replace(' ', '\n')
     receiver = '-----BEGIN RSA PUBLIC KEY-----\n' + receiver + '\n-----END RSA PUBLIC KEY-----'
@@ -143,9 +139,8 @@ def create_transaction():
     receiver = trans['receiver_address']
     amount = trans['amount']
     for node in new_node.ring:
-        if node["id"]==sender[2:]: sender = node["public_key"]
-        if node["id"]==receiver[2:]: receiver = node["public_key"]
-    #print("SEN", sender, "RES", sender)
+        if node["id"] == sender[2:]: sender = node["public_key"]
+        if node["id"] == receiver[2:]: receiver = node["public_key"]
     time.sleep(0.5)
     new_node.create_transaction(sender, receiver, int(amount))
     response = 'success'
@@ -171,7 +166,6 @@ def broadcast_transaction():
 @app.route('/broadcast/ring', methods=['POST'])
 def broadcast_ring():
     message = request.get_json()
-    #print(message)
     new_node.ring = json.loads(message)
     for node in new_node.ring:
         if node["public_key"] == new_node.public:
@@ -229,9 +223,6 @@ def home():
 @app.route('/wallet', methods=['GET'])
 def wallet():
     session['viewing'] = 'wallet'
-    # pass data to page call
-    #res = requests.get(new_node.address+'/transactions/view').json()
-    #print(res)
     money_sent = requests.get(new_node.address + '/transactions/money/sent').json()
     money_received = requests.get(new_node.address + '/transactions/money/received').json()
     date = json.loads(new_node.blockchain.blocks[-1].to_json())['timestamp']
@@ -281,29 +272,15 @@ def blockchain():
 @app.template_filter('ctime')
 def timectime(s):
     return time.ctime(s)
-##############################################################################################
-
-# Function for node
-#def start_new_node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes):
-#    time.sleep(3)
-#    print("New node")
-#    new_node = Node(ip, port, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes)
-
-# Start node
-#t_node = Thread(target=start_new_node, args=(HOST, PORT, boot, ip_of_bootstrap, port_of_bootstrap, no_of_nodes))
-#t_node.start()
-
-#def start_new_flask_app(ip, port):
-#    app.run(host=ip, port=port, debug=False, use_reloader=False)
-    #from waitress import serve
-    #serve(app, host=ip, port=port)
 
 print(f'Inputs: {HOST}, {PORT}, {boot}, {ip_of_bootstrap}, {port_of_bootstrap}, {no_of_nodes}, {capacity}, {difficulty}')
 
 if __name__ == '__main__':
 
+    print(f'\nHost\'s IP: {HOST}, Host\'s Port: {PORT}, Bootstrap Node: {boot}')
+    print(f'Boostrap\'s IP: {ip_of_bootstrap}, Boostrap\'s Port: {port_of_bootstrap}')
+    print(f'Nodes in the network: {no_of_nodes}, Block\'s Capacity: {capacity}, Mining Difficulty: {difficulty}\n')
+
     # Start Flask app
     from waitress import serve
-    serve(app, host=HOST, port=PORT, threads=10) #, debug=True, use_reloader=False)
-    #app.run(host=HOST, port=PORT, debug=False, use_reloader=False) #True
-    #time.sleep(3)
+    serve(app, host=HOST, port=PORT, threads=10)

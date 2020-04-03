@@ -18,7 +18,7 @@ class Blockchain:
                                   transaction_inputs='', wallet=None, ids="id0", genesis=True)
 
         self.genesis.transactions.append(transaction)
-        self.genesis.timestamp=0
+        self.genesis.timestamp = 0
         self.genesis.current_hash = self.genesis.get_hash()
 
         self.blocks = [self.genesis]  # List of added blocks (aka chain)
@@ -38,7 +38,6 @@ class Blockchain:
         return self
 
     def mine_block(self, block, difficulty):
-
         # We mine the whole block until the conditions are met or we get the block from another user
         nonce = 0
         block_to_mine = block
@@ -52,7 +51,6 @@ class Blockchain:
             nonce += 1
             block_to_mine.nonce = nonce
             block_hash = block_to_mine.get_hash()
-
 
         print("I GOT A BLOCK")
         block_to_mine.current_hash = block_hash
@@ -114,8 +112,6 @@ class Blockchain:
                         transaction.transaction_outputs = t["transaction_outputs"]
                         transaction.change = int(t["change"])
 
-                        # Dont need this?!
-                        # transaction = transaction.to_od()
                         transactions.append(transaction)
 
                     block = Block(block["index"], transactions, block["nonce"], block["previous_hash"],
@@ -125,22 +121,10 @@ class Blockchain:
 
                     tmp_blockchain.append(block)
 
-                print(f'Collected chain')
-                ################## TO AFHNW????????????? ##################
-                ################## TO AFHNW????????????? ##################
-                ################## TO AFHNW????????????? ##################
-                self.resolve = False
                 # If bigger is to be found, replace existing chain
                 if len(tmp_blockchain) > len(self.blocks) and self.validate_chain(tmp_blockchain):
-                    print("\n\n\nI changed my blockchain WOOHOO!")
+                    print(f'-- Updated Chain from Node {member.get("id")}')
                     self.blocks = tmp_blockchain
-                #     return True
-                # elif len(tmp_blockchain) == len(self.blocks):
-                #     print("We are equal")
-                #     return False
-                # else:
-                #     print("\nMy blockchain is bigger and better!!!!!!!")
-                #     return False
 
         return self
 
@@ -171,7 +155,7 @@ class Blockchain:
             print("I failed the nonce test")
             return False
         # check tha it sticks to our chain
-        if self.blocks[-1].current_hash != block.previous_hash and block.index != 1:
+        if self.blocks[-1].current_hash != block.previous_hash and block.index != 0:
             print("I failed the previous hash test")
             return False
 

@@ -100,7 +100,7 @@ Nick Nikitas [(03400043)](https://github.com/nikoshet) - ΕΔΕΜΜ.
 
 Dimitris Zografakis [(03400050)](https://github.com/dimzog) - ΕΔΕΜΜ.
 
-Dimitris Lambrakis [(03400059)](https://github.com) - ΕΔΕΜΜ.
+Dimitris Lamprakis [(03400059)](https://github.com/amra13579) - ΕΔΕΜΜ.
 
 ---
 ### Licence
@@ -109,7 +109,7 @@ The css code used is under the MIT License and can be found here: [darkly](https
 
 The logo of the web interface is based on Bitcoin logo, and can be found [here](https://bitcoin.org/en/).
 
-Nick Nikitas, Dimitris Zografakis, Dimitris Lambrakis.
+Nick Nikitas, Dimitris Zografakis, Dimitris Lamprakis.
 
 Copyright © 2020
 

@@ -8,8 +8,7 @@ import json
 class Blockchain:
     def __init__(self, ring, my_id, no_of_nodes):
 
-        # List of ring nodes
-        self.ring = ring
+        self.ring = ring  # List of ring nodes
 
         # Genesis block
         self.genesis = Block(index=0, previous_hash=1, transactions=[], nonce=0)
@@ -19,10 +18,11 @@ class Blockchain:
                                   transaction_inputs='', wallet=None, ids="id0", genesis=True)
 
         self.genesis.transactions.append(transaction)
-        self.genesis.timestamp = 0
+        self.genesis.timestamp=0
         self.genesis.current_hash = self.genesis.get_hash()
 
         self.blocks = [self.genesis]  # List of added blocks (aka chain)
+        self.resolve = False  # Check chain updates (bigger was found)
 
     def __str__(self):
         chain = f'{self.genesis.index} ({0})'
@@ -53,7 +53,8 @@ class Blockchain:
             block_to_mine.nonce = nonce
             block_hash = block_to_mine.get_hash()
 
-        print('Just MINED a Block')
+
+        print("I GOT A BLOCK")
         block_to_mine.current_hash = block_hash
 
         return block_to_mine
@@ -67,20 +68,20 @@ class Blockchain:
                 url = f'{member.get("address")}/broadcast/block'
                 print(url)
                 response = requests.post(url, json=block.to_json())
-                # if response.status_code == 400 or response.status_code == 500:
-                #     print('Block declined, needs resolving')
-                # if response.status_code == 409:
-                #     self.resolve = True
+                if response.status_code == 400 or response.status_code == 500:
+                    print('Block declined, needs resolving')
+                if response.status_code == 409:
+                    self.resolve = True
 
         # send it to my self, remember everyone is equal
         for member in self.ring:
             if self.my_id == f'id{member.get("id")}':
                 url = f'{member.get("address")}/broadcast/block'
                 response = requests.post(url, json=block.to_json())
-                # if response.status_code == 400 or response.status_code == 500:
-                #     print('Block declined, needs resolving')
-                # if response.status_code == 409:
-                #     self.resolve = True
+                if response.status_code == 400 or response.status_code == 500:
+                    print('Block declined, needs resolving')
+                if response.status_code == 409:
+                    self.resolve = True
 
         return self
 
@@ -124,13 +125,22 @@ class Blockchain:
 
                     tmp_blockchain.append(block)
 
-                print(f'Collected chain from MR: {member.get("id")}')
-
-                # self.resolve = False
+                print(f'Collected chain')
+                ################## TO AFHNW????????????? ##################
+                ################## TO AFHNW????????????? ##################
+                ################## TO AFHNW????????????? ##################
+                self.resolve = False
                 # If bigger is to be found, replace existing chain
                 if len(tmp_blockchain) > len(self.blocks) and self.validate_chain(tmp_blockchain):
-                    print('\n-- UPDATED BLOCKCHAIN ---\n')
+                    print("\n\n\nI changed my blockchain WOOHOO!")
                     self.blocks = tmp_blockchain
+                #     return True
+                # elif len(tmp_blockchain) == len(self.blocks):
+                #     print("We are equal")
+                #     return False
+                # else:
+                #     print("\nMy blockchain is bigger and better!!!!!!!")
+                #     return False
 
         return self
 

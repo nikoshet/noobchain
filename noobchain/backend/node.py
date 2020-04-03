@@ -67,7 +67,7 @@ class Node:
     def mine(self):
 
         while True:
-            if len(self.pending_transactions) <= self.capacity:
+            if len(self.pending_transactions) < self.capacity:
                 # Take a nap while waiting for block to fill up
                 time.sleep(5)
 

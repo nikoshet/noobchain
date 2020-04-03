@@ -25,9 +25,9 @@ parser.add_argument('-bootstrap', default='False', type=str, help='is node boots
 #parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
 parser.add_argument('-ip_bootstrap', default='127.0.0.1', type=str, help='ip of bootstrap')
 parser.add_argument('-port_bootstrap', default=1000, type=int, help='port of bootstrap')
-parser.add_argument('-nodes', default=5, type=int, help='number of nodes')
+parser.add_argument('-nodes', default=3, type=int, help='number of nodes')
 parser.add_argument('-cap', default=5, type=int, help='capacity of blocks')
-parser.add_argument('-dif', default=5, type=int, help='difficulty')
+parser.add_argument('-dif', default=4, type=int, help='difficulty')
 #args = parser.parse_args()
 args, _ = parser.parse_known_args()
 HOST = args.ip

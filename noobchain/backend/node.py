@@ -60,6 +60,50 @@ class Node:
             #self.register_on_bootstrap()
 
         Thread(target=self.read_file).start()
+        Thread(target=self.mine).start()
+
+
+    def mine(self):
+
+        while True:
+            if len(self.pending_transactions) <= self.capacity:
+                #try:
+                #    self.blockchain.resolve_conflict()
+                #except:
+                #    pass
+
+                time.sleep(5)
+
+            else:
+                self.remove_trans()
+
+                transactions = []
+
+                # Load transactions for that block
+                for t in self.pending_transactions[:self.capacity]:
+                    transaction = Transaction(sender_address=t["sender_address"],
+                                              receiver_address=t["receiver_address"],
+                                              amount=int(t["amount"]), wallet=None,
+                                              transaction_inputs=t["transaction_inputs"],
+                                              ids=t["node_id"])
+
+                    transaction.transaction_id = t["transaction_id"]
+                    transaction.signature = t["signature"]
+                    transaction.transaction_outputs = t["transaction_outputs"]
+                    transaction.change = int(t["change"])
+
+                    # Dont need this?!
+                    # transaction = transaction.to_od()
+                    transactions.append(transaction)
+
+                block = Block(index=len(self.blockchain.blocks) + 1, nonce=0,
+                              transactions=transactions,
+                              previous_hash=self.blockchain.blocks[-1].current_hash)
+
+                block = self.blockchain.mine_block(block=block, difficulty=self.difficulty)
+
+                self.blockchain.broadcast_block(block)
+
 
 
     def __str__(self):
@@ -160,11 +204,12 @@ class Node:
             if tmp<value:
                 trans_input.append(key)
                 tmp+=available
-        my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address,amount=value, transaction_inputs=trans_input,wallet=self.wallet,ids=self.id)
+        my_trans = Transaction(sender_address=sender_address, receiver_address=receiver_address, amount=value,
+                               transaction_inputs=trans_input, wallet=self.wallet, ids=self.id)
         my_trans.signature = Wallet.sign_transaction(self.wallet, my_trans)
+
         message = {'transaction': my_trans.to_json()}
         self.broadcast_transaction(message)
-        return my_trans
 
     def broadcast_transaction(self, message):
         print('Broadcasting transaction')
@@ -182,6 +227,7 @@ class Node:
 
         # also broadcast it to ourselves because we have the object and we want the json,
         # we are leveling everything between the boot and the nodes
+
         for member in self.ring:
             address = member.get('address')
             if address == self.address:
@@ -193,18 +239,29 @@ class Node:
                 #else:
                 #    print('Success on broadcasting transaction on node:', address)
 
-    def validate_transaction(self, transaction, signature, sender):
+    def validate_transaction(self, t, signature, sender):
         # parse the transaction to ordered dictionary
-        transaction = OrderedDict([
-            ('sender_address', transaction["sender_address"]),
-            ('receiver_address', transaction["receiver_address"]),
-            ('amount', transaction["amount"]),
-            ('transaction_id', transaction["transaction_id"]),
-            ('transaction_inputs', transaction["transaction_inputs"]),
-            ('transaction_outputs', transaction["transaction_outputs"]),
-            ("signature", transaction["signature"]),
-            ("change", transaction["change"]),
-            ("node_id", transaction["node_id"])])
+        # transaction = OrderedDict([
+        #     ('sender_address', transaction["sender_address"]),
+        #     ('receiver_address', transaction["receiver_address"]),
+        #     ('amount', transaction["amount"]),
+        #     ('transaction_id', transaction["transaction_id"]),
+        #     ('transaction_inputs', transaction["transaction_inputs"]),
+        #     ('transaction_outputs', transaction["transaction_outputs"]),
+        #     ("signature", transaction["signature"]),
+        #     ("change", transaction["change"]),
+        #     ("node_id", transaction["node_id"])])
+
+        transaction = Transaction(sender_address=t["sender_address"],
+                                  receiver_address=t["receiver_address"],
+                                  amount=int(t["amount"]), wallet=None,
+                                  transaction_inputs=t["transaction_inputs"],
+                                  ids=t["node_id"])
+
+        transaction.transaction_id = t["transaction_id"]
+        transaction.signature = t["signature"]
+        transaction.transaction_outputs = t["transaction_outputs"]
+        transaction.change = int(t["change"])
 
         # if I am not the bootstrap I dont have a blockchain
         if self.blockchain is None:
@@ -215,33 +272,21 @@ class Node:
             # if everything is good change the UTXOS
             self.update_utxos(transaction, self.wallet)
             # add to list of transactions
-            self.pending_transactions.append(transaction)
-            # if I have reached my capacity it's time to create new block and mine it
-            if len(self.pending_transactions) >= self.capacity:
-                self.mine_new_block()
+            # self.pending_transactions.append(transaction)
+
+            self.pending_transactions.append(transaction.to_od())
+
             return True
         else:
             print('Error on validating')
             return False
 
-    def mine_new_block(self):
-        # create the new block and start mining it
-        self.mining = True
-        new_block_index = self.blockchain.blocks[-1].index + 1
-        previous_hash = self.blockchain.blocks[new_block_index-1].current_hash
-        nonce=0
-        self.new_block = Block(new_block_index, self.pending_transactions[:self.capacity], nonce, previous_hash)
-
-        # nice lambda trick its a way to kill the mining thread
-        mine_thread = Thread(target=self.blockchain.mine_block, args=(self.new_block, self.difficulty, lambda: self.mining))
-        mine_thread.start()
-        return
 
     def verify_value(self, trans):
         #check that the utxos of the sender are enough to create this transaction and he is not cheating
-        id_sender = trans["node_id"]
-        amount = trans["amount"]
-        to_be_checked = trans["transaction_inputs"]
+        id_sender = trans.node_id
+        amount = trans.amount
+        to_be_checked = trans.transaction_inputs
         available_money = 0
         if id_sender == self.id:
             unspent_transactions = [(k, v) for k, v in self.wallet.utxos.items()] 
@@ -261,14 +306,18 @@ class Node:
     def verify_signature(self, trans, pub_key):
         # verify the signature of the sender
         # transform the json/dictionary to ordered dictionary format so that we have the same hash
-        to_test= deepcopy(trans)
-        to_test["signature"] = ""
-        to_test = json.dumps(to_test, default=str)
+        to_test = deepcopy(trans)
+        to_test.signature = ""
+        #to_test = json.dumps(to_test, default=str)
+        to_test = to_test.to_json()
         h = SHA.new(to_test.encode('utf8'))
         public_key = RSA.importKey(pub_key)
         sign_to_test = PKCS1_v1_5.new(public_key)
-        if sign_to_test.verify(h, b64decode(trans["signature"])):
+
+
+        if sign_to_test.verify(h, b64decode(trans.signature)):
             return True
+
         print("Wrong signature")
         return False
 
@@ -279,9 +328,9 @@ class Node:
 
         # find the sender and the receiver id from the ring
         for node in self.ring:
-                if node["public_key"]==trans["receiver_address"]:   
+                if node["public_key"] == trans.receiver_address:
                     id_receiver = "id"+str(node["id"])
-                if node["public_key"]==trans["sender_address"]:
+                if node["public_key"] == trans.sender_address:
                     id_sender = "id"+str(node["id"])
 
         # check wheter I have created a key in the dictionary for the ones in the current transaction
@@ -297,101 +346,117 @@ class Node:
                 portofoli.others_utxos[id_sender]=[]
 
         # If I was the one getting money upgrade my utxos
-        if trans["receiver_address"] == self.public:
-            portofoli.utxos[list(trans["transaction_outputs"][0].keys())[0]]=trans["transaction_outputs"][0][list(trans["transaction_outputs"][0].keys())[0]][1]
+        if trans.receiver_address == self.public:
+            portofoli.utxos[list(trans.transaction_outputs[0].keys())[0]]=trans.transaction_outputs[0][list(trans.transaction_outputs[0].keys())[0]][1]
             i_got_money = True
 
         # If I was the one sending money delete the utxos that I used from wallet
         # and if I am expecting change create a new utxo with the change
-        if trans["sender_address"] == self.public:
-            for utxos_spend in trans["transaction_inputs"]:
+        if trans.sender_address == self.public:
+            for utxos_spend in trans.transaction_inputs:
                 del portofoli.utxos[utxos_spend]
-            if trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]>0:
-                portofoli.utxos[list(trans["transaction_outputs"][1].keys())[0]]=trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]
+            if trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]>0:
+                portofoli.utxos[list(trans.transaction_outputs[1].keys())[0]]=trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]
             i_got_change = True
 
         # Again if I was the one that got money I have to fix the utxos of the sender
         if i_got_money:
             items_to_remove = []
             for item in portofoli.others_utxos[id_sender]:
-                if item[0] in trans["transaction_inputs"]:
+                if item[0] in trans.transaction_inputs:
                     items_to_remove.append(item)
             for item in items_to_remove:
                 portofoli.others_utxos[id_sender].remove(item)
-            if trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]>0:
-                portofoli.others_utxos[id_sender].append((list(trans["transaction_outputs"][1].keys())[0],
-                                                          trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]))
+            if trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]>0:
+                portofoli.others_utxos[id_sender].append((list(trans.transaction_outputs[1].keys())[0],
+                                                          trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]))
         
         # if I get change, i.e. I spend more utxos than the value I wanted to send, I have to upgrade my utxos
         elif i_got_change:
              for node in self.ring:
-                if node["public_key"] == trans["receiver_address"]:
+                if node["public_key"] == trans.receiver_address:
                     id_receiver = "id"+str(node["id"])
                     break
             
-             portofoli.others_utxos[id_receiver].append((list(trans["transaction_outputs"][0].keys())[0],
-                                                         trans["transaction_outputs"][0][list(trans["transaction_outputs"][0].keys())[0]][1]))
+             portofoli.others_utxos[id_receiver].append((list(trans.transaction_outputs[0].keys())[0],
+                                                         trans.transaction_outputs[0][list(trans.transaction_outputs[0].keys())[0]][1]))
 
         # the last case is that I did not participate in this transaction so I have to upgrade the utxos of the sender
         # and the receiver, mind that for the sender I must delete the inputs of the transaction
         # and create new utxo if he got change
         else:
-            portofoli.others_utxos[id_receiver].append((list(trans["transaction_outputs"][0].keys())[0],
-                                                        trans["transaction_outputs"][0][list(trans["transaction_outputs"][0].keys())[0]][1]))
+            portofoli.others_utxos[id_receiver].append((list(trans.transaction_outputs[0].keys())[0],
+                                                        trans.transaction_outputs[0][list(trans.transaction_outputs[0].keys())[0]][1]))
             items_to_remove = []
             for item in portofoli.others_utxos[id_sender]:
-                if item[0] in trans["transaction_inputs"]:
+                if item[0] in trans.transaction_inputs:
                     items_to_remove.append(item)
             for item in items_to_remove:
                 portofoli.others_utxos[id_sender].remove(item)
             
-            if trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]>0:
-                portofoli.others_utxos[id_sender].append((list(trans["transaction_outputs"][1].keys())[0],
-                                                          trans["transaction_outputs"][1][list(trans["transaction_outputs"][1].keys())[0]][1]))
+            if trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]>0:
+                portofoli.others_utxos[id_sender].append((list(trans.transaction_outputs[1].keys())[0],
+                                                          trans.transaction_outputs[1][list(trans.transaction_outputs[1].keys())[0]][1]))
         return
 
 
-    def create_new_block(self, previous_hash, nonce):
-        new_block_index = len(self.blockchain.blocks)
-        self.new_block = Block(new_block_index, [], nonce, previous_hash)
-        # return True
-        self.blockchain.append(self.new_block)
+    # def create_new_block(self, previous_hash, nonce):
+    #     new_block_index = len(self.blockchain.blocks)
+    #     self.new_block = Block(new_block_index, [], nonce, previous_hash)
+    #     # return True
+    #     self.blockchain.append(self.new_block)
 
-    def valid_block(self, block):
-        #Transform the json to block object
-        self.mining = False
-        block_index = block["index"]
-        block_timestamp = block["timestamp"]
-        block_transactions = block["transactions"]
-        block_nonce = block["nonce"]
-        block_previous_hash = block["previous_hash"]
-        block_to_test = Block(block_index, block_transactions, block_nonce, block_previous_hash, block_timestamp)
-        transactions_ids_in_block = []
-        # which transactions are in the block?
-        for i in range(len(block_to_test.transactions)):
-            transactions_ids_in_block.append(block_to_test.transactions[i]["transaction_id"])
-        # which transactions I should get rid of?
-        get_rid = [i for i in self.pending_transactions if (i["transaction_id"] in transactions_ids_in_block)]
-        # verify the new block we got
-        if self.blockchain.validate_block(block_to_test, self.difficulty) and len(get_rid)!=0:#I will actually benefit from testing this block
-            block_to_test.current_hash = block_to_test.get_hash_obj().hexdigest()
-            # remove these transactions from our pending block
-            self.pending_transactions = [i for i in self.pending_transactions if not(i["transaction_id"] in transactions_ids_in_block)]
-            # add the confirmed block tou our chain
-            self.blockchain.add_block(block_to_test)
-        # maybe we have the wrong blockchain?
-        elif len(get_rid) != 0:  # if we dont get rid of items then we don't care
-            if self.blockchain.resolve_conflict():
-                block_to_test = self.blockchain.blocks[-1]
-                # remove these transactions from our pending block
-                self.pending_transactions = [i for i in self.pending_transactions if
-                                             not (i["transaction_id"] in transactions_ids_in_block)]
-        print('Current length of blockchain:',len(self.blockchain.blocks),'blocks')
-        # keep the dream alive
-        #if len(self.pending_transactions)!=0:
-        if len(self.pending_transactions) >= self.capacity:
-            self.mine_new_block()
-        return
+
+    def remove_trans(self):
+
+        done = []
+        for block in self.blockchain.blocks:
+            for trans in block.transactions:
+                done.append(trans.to_od())
+
+        dd = [trans for trans in self.pending_transactions if trans not in done]
+
+        self.pending_transactions = dd
+
+
+    def valid_block(self, block_received):
+        transactions = []
+
+        # Load transactions for that block
+        for t in block_received["transactions"]:
+            transaction = Transaction(sender_address=t["sender_address"],
+                                      receiver_address=t["receiver_address"],
+                                      amount=int(t["amount"]), wallet=None,
+                                      transaction_inputs=t["transaction_inputs"],
+                                      ids=t["node_id"])
+
+            transaction.transaction_id = t["transaction_id"]
+            transaction.signature = t["signature"]
+            transaction.transaction_outputs = t["transaction_outputs"]
+            transaction.change = int(t["change"])
+
+            # Dont need this?!
+            # transaction = transaction.to_od()
+            transactions.append(transaction)
+
+        block = Block(index=block_received["index"], transactions=transactions, nonce=block_received["nonce"],
+                      previous_hash=block_received["previous_hash"], timestamp=block_received["timestamp"])
+
+        block.current_hash = block.get_hash()
+
+        print('Current length of blockchain:', len(self.blockchain.blocks), 'blocks')
+
+        if self.blockchain.validate_block(block, self.difficulty):
+
+            self.blockchain.add_block(block)
+
+            self.remove_trans()
+            print(f'TODO {len(self.pending_transactions)}')
+
+            return True
+
+        self.blockchain.resolve_conflict()
+        return False
 
     # Function to read file for transactions
     def read_file(self):
@@ -408,5 +473,8 @@ class Node:
                 # get address based on index
                 receiver = self.ring[int(node_id[2:])].get('public_key')
                 self.create_transaction(self.public, receiver, int(amount))
-                time.sleep(5)
+                ################## poso time sleep???????????? ##################
+                ################## poso time sleep???????????? ##################
+                ################## poso time sleep???????????? ##################
+                time.sleep(1)
         print('My transactions finished!')

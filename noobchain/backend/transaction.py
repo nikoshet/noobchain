@@ -56,3 +56,13 @@ class Transaction:
         # Convert object to json
         #return json.dumps(self.to_od())
         return json.dumps(self.to_od(), default=str)
+
+
+    def get_hash(self):
+        # This function does not update current_hash, current_hash_obj
+        #return sha256(str(self.to_od()).encode('utf-8')).hexdigest()
+        return self.get_hash_obj().hexdigest()
+
+    def get_hash_obj(self):
+        # Get object instance as it is easier to update while trying new hashes (mining)
+        return sha256(str(self.to_od()).encode('utf-8'))

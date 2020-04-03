@@ -18,13 +18,15 @@ CORS(app)
 
 # Arguments
 parser = ArgumentParser()
-parser.add_argument('-ip', default='0.0.0.0', type=str, help='ip of node')
+#parser.add_argument('-ip', default='0.0.0.0', type=str, help='ip of node')
+parser.add_argument('-ip', default='127.0.0.1', type=str, help='ip of node')
 parser.add_argument('-p', '--port', default=1000, type=int, help='port to listen on')
-parser.add_argument('-bootstrap', default='True', type=str, help='is node bootstrap?')
-parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
+parser.add_argument('-bootstrap', default='False', type=str, help='is node bootstrap?')
+#parser.add_argument('-ip_bootstrap', default='0.0.0.0', type=str, help='ip of bootstrap')
+parser.add_argument('-ip_bootstrap', default='127.0.0.1', type=str, help='ip of bootstrap')
 parser.add_argument('-port_bootstrap', default=1000, type=int, help='port of bootstrap')
 parser.add_argument('-nodes', default=5, type=int, help='number of nodes')
-parser.add_argument('-cap', default=2, type=int, help='capacity of blocks')
+parser.add_argument('-cap', default=7, type=int, help='capacity of blocks')
 parser.add_argument('-dif', default=4, type=int, help='difficulty')
 #args = parser.parse_args()
 args, _ = parser.parse_known_args()
@@ -145,7 +147,7 @@ def create_transaction():
         if node["id"]==receiver[2:]: receiver = node["public_key"]
     #print("SEN", sender, "RES", sender)
     time.sleep(0.5)
-    trans = new_node.create_transaction(sender, receiver, int(amount))
+    new_node.create_transaction(sender, receiver, int(amount))
     response = 'success'
     return jsonify(response), 200
 
@@ -187,7 +189,8 @@ def broadcast_block():
     # get json post
     block = json.loads(request.get_json())
     response = 0
-    Thread(target=new_node.valid_block(block)).start()
+    new_node.valid_block(block)
+
     return jsonify(response), 200
 
 
@@ -301,6 +304,6 @@ if __name__ == '__main__':
 
     # Start Flask app
     from waitress import serve
-    serve(app, host=HOST, port=PORT, threads=5) #, debug=True, use_reloader=False)
+    serve(app, host=HOST, port=PORT, threads=10) #, debug=True, use_reloader=False)
     #app.run(host=HOST, port=PORT, debug=False, use_reloader=False) #True
     #time.sleep(3)

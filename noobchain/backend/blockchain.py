@@ -37,7 +37,7 @@ class Blockchain:
         self.blocks.append(new_block)
         return self
 
-    def mine_block(self, block, difficulty, continue_mine):
+    def mine_block(self, block, difficulty):
 
         # We mine the whole block until the conditions are met or we get the block from another user
         nonce = 0
@@ -48,19 +48,16 @@ class Blockchain:
         block_hash = block_to_mine.get_hash()
 
         # try new hashes until first n characters are 0
-        while block_hash[:difficulty] != '0' * difficulty and continue_mine():
-            # block_hash.update(f'{nonce}{prev_hash.hexdigest()}'.encode('utf-8'))
+        while block_hash[:difficulty] != '0' * difficulty:
             nonce += 1
             block_to_mine.nonce = nonce
             block_hash = block_to_mine.get_hash()
 
-        # update with new calculated hash
-        if continue_mine():
-            print("I GOT A BLOCK")
-            block_to_mine.current_hash = block_hash
-            # block_to_mine.nonce = nonce - 1
-            self.broadcast_block(block_to_mine)
-        return
+
+        print("I GOT A BLOCK")
+        block_to_mine.current_hash = block_hash
+
+        return block_to_mine
 
     def broadcast_block(self, block):
 
@@ -129,17 +126,23 @@ class Blockchain:
                     tmp_blockchain.append(block)
 
                 print(f'Collected chain')
+                ################## TO AFHNW????????????? ##################
+                ################## TO AFHNW????????????? ##################
+                ################## TO AFHNW????????????? ##################
+                self.resolve = False
                 # If bigger is to be found, replace existing chain
                 if len(tmp_blockchain) > len(self.blocks) and self.validate_chain(tmp_blockchain):
                     print("\n\n\nI changed my blockchain WOOHOO!")
                     self.blocks = tmp_blockchain
-                    return True
-                elif len(tmp_blockchain) == len(self.blocks):
-                    print("We are equal")
-                    return False
-                else:
-                    print("\nMy blockchain is bigger and better!!!!!!!")
-                    return False
+                #     return True
+                # elif len(tmp_blockchain) == len(self.blocks):
+                #     print("We are equal")
+                #     return False
+                # else:
+                #     print("\nMy blockchain is bigger and better!!!!!!!")
+                #     return False
+
+        return self
 
     def to_od(self):
         od = OrderedDict([

@@ -35,15 +35,15 @@ sudo pip install --ignore-installed -r requirements.txt
 
 $$$$$$$
 vm1
-sudo python3 noobchain/main.py -ip snf-12646.ok-kno.grnetcloud.net -p 1000 -ip_bootstrap snf-12646.ok-kno.grnetcloud.net -nodes 5 -cap 2 - dif 4
+sudo python3 noobchain/main.py -ip snf-12646.ok-kno.grnetcloud.net -p 1000 -ip_bootstrap snf-12646.ok-kno.grnetcloud.net -nodes 5 -cap 5 - dif 4
 vm2
-sudo python3 noobchain/main.py -ip snf-12647.ok-kno.grnetcloud.net -p 2000 -bootstrap False -ip_bootstrap snf-12646.ok-kno.grnetcloud.net  -nodes 5 -cap 2 -dif 4
+sudo python3 noobchain/main.py -ip snf-12647.ok-kno.grnetcloud.net -p 2000 -bootstrap False -ip_bootstrap snf-12646.ok-kno.grnetcloud.net -nodes 5 -cap 5 -dif 4
 vm3
-sudo python3 noobchain/main.py -ip snf-12648.ok-kno.grnetcloud.net -p 3000 -bootstrap False -ip_bootstrap snf-12646.ok-kno.grnetcloud.net  -nodes 5 -cap 2 -dif 4
+sudo python3 noobchain/main.py -ip snf-12648.ok-kno.grnetcloud.net -p 3000 -bootstrap False -ip_bootstrap snf-12646.ok-kno.grnetcloud.net -nodes 5 -cap 5 -dif 4
 vm4
-sudo python3 noobchain/main.py -ip snf-12649.ok-kno.grnetcloud.net -p 4000 -bootstrap False -ip_bootstrap snf-12646.ok-kno.grnetcloud.net  -nodes 5 -cap 2 -dif 4
+sudo python3 noobchain/main.py -ip snf-12649.ok-kno.grnetcloud.net -p 4000 -bootstrap False -ip_bootstrap snf-12646.ok-kno.grnetcloud.net -nodes 5 -cap 5 -dif 4
 vm5
-sudo python3 noobchain/main.py -ip snf-12650.ok-kno.grnetcloud.net -p 5000 -bootstrap False -ip_bootstrap snf-12646.ok-kno.grnetcloud.net  -nodes 5 -cap 2 -dif 4
+sudo python3 noobchain/main.py -ip snf-12650.ok-kno.grnetcloud.net -p 5000 -bootstrap False -ip_bootstrap snf-12646.ok-kno.grnetcloud.net -nodes 5 -cap 5 -dif 4
 
 
 

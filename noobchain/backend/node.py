@@ -103,6 +103,8 @@ class Node:
                 # Broadcast it to everyone
                 self.blockchain.broadcast_block(block)
 
+                self.valid_block(json.loads(block.to_json()))
+
     def __str__(self):
         return f'------ PRINTING DETAILS FOR USER: [{self.ip}] ------' \
                f'\n{self.ip} {self.port}' \
@@ -187,6 +189,8 @@ class Node:
         message = {'transaction': my_trans.to_json()}
         self.broadcast_transaction(message)
 
+        self.validate_transaction(json.loads(my_trans.to_json()), my_trans.signature, sender_address)
+
     def broadcast_transaction(self, message):
         print('Broadcasting transaction')
         # Post message in ring except me
@@ -202,16 +206,16 @@ class Node:
         # also broadcast it to ourselves because we have the object and we want the json,
         # we are leveling everything between the boot and the nodes
 
-        for member in self.ring:
-            address = member.get('address')
-            if address == self.address:
-                # Post request
-                # send to ring.sender
-                req = requests.post(address + "/broadcast/transaction", json=json.dumps(message))# data=jsonify(message))
-                if not req.status_code == 200:
-                    print('Error:', req.status_code)
-                #else:
-                #    print('Success on broadcasting transaction on node:', address)
+        # for member in self.ring:
+        #     address = member.get('address')
+        #     if address == self.address:
+        #         # Post request
+        #         # send to ring.sender
+        #         req = requests.post(address + "/broadcast/transaction", json=json.dumps(message))# data=jsonify(message))
+        #         if not req.status_code == 200:
+        #             print('Error:', req.status_code)
+        #         #else:
+        #         #    print('Success on broadcasting transaction on node:', address)
 
     def validate_transaction(self, t, signature, sender):
 
@@ -362,11 +366,11 @@ class Node:
         # Update pending transactions by checking currently validated ones against transactions in blockchain
 
         # Transactions that have already been done
-        # done = [trans.to_od() for block in self.blockchain.blocks for trans in block.transactions]
-        done = []
-        for block in self.blockchain.blocks:
-            for trans in block.transactions:
-                done.append(trans.to_od())
+        done = [trans.to_od() for block in self.blockchain.blocks for trans in block.transactions]
+        #done = []
+        #for block in self.blockchain.blocks:
+        #    for trans in block.transactions:
+        #        done.append(trans.to_od())
 
         # Keep transactions that you have validated, but they are not in blockchain
         dd = [trans for trans in self.pending_transactions if trans not in done]

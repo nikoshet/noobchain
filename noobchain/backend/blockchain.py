@@ -71,15 +71,15 @@ class Blockchain:
                 if response.status_code == 409:
                     self.resolve = True
 
-        # send it to my self, remember everyone is equal
-        for member in self.ring:
-            if self.my_id == f'id{member.get("id")}':
-                url = f'{member.get("address")}/broadcast/block'
-                response = requests.post(url, json=block.to_json())
-                if response.status_code == 400 or response.status_code == 500:
-                    print('Block declined, needs resolving')
-                if response.status_code == 409:
-                    self.resolve = True
+        # # send it to my self, remember everyone is equal
+        # for member in self.ring:
+        #     if self.my_id == f'id{member.get("id")}':
+        #         url = f'{member.get("address")}/broadcast/block'
+        #         response = requests.post(url, json=block.to_json())
+        #         if response.status_code == 400 or response.status_code == 500:
+        #             print('Block declined, needs resolving')
+        #         if response.status_code == 409:
+        #             self.resolve = True
 
         return self
 

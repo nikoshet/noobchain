@@ -1,9 +1,8 @@
 # Noobchain (Fullstack Flask App)
 
 Blockchain Project for 'Distributed Systems' M.Sc. Course 2019-2020.
----
-Used: *** Python,Flask,Docker, HTML,Ajax,Jquery,css ***
----
+
+Used: **Python, Flask, Docker, HTML, Ajax, Jquery, css**
 
 ## REST API Implementation
 

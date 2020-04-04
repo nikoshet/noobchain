@@ -1,4 +1,4 @@
-# Noobchain (Fullstack Flask App)
+# Noobchain (A Fullstack Blockchain App With Flask)
 
 Blockchain Project for 'Distributed Systems' M.Sc. Course 2019-2020.
 

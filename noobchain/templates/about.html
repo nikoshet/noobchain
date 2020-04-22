@@ -1,0 +1,162 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+<div class="row">
+        <div class="col-1"></div>
+        <div class="col-10">
+            <div class="jumbotron">
+                <div class="container" xmlns="http://www.w3.org/1999/html">
+                    <div class="row">
+
+                        <div class="col s12">
+                            <h5 style="color:#fff">Basic Information About the Blockchain Application:</h5>
+                            <br>
+                        </div>
+                        <div class="divider"></div>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col s12">
+                            <div class="card border-secondary mb-4">
+                                <form>
+                                    <fieldset>
+                                        <div class="card-header"><h5 style="color:#fff">REST API Implementation</h5></div>
+                                        <div class="card-body">
+
+                                            <table class="table table-hover" style="color:#fff">
+                                                <h5>Backend</h5>
+                                                <thead>
+                                                <tr>
+                                                    <th scope="col">URL</th>
+                                                    <th scope="col">Type</th>
+                                                    <th scope="col">Action</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr class="table-active">
+                                                    <th scope="row">/chain</th>
+                                                    <td>GET</td>
+                                                    <td>Get the blockchain from other nodes to resolve conflict</tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/transactions/view</th>
+                                                    <td>GET</td>
+                                                    <td>View transactions from last verified block</tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/transactions/create/browser</th>
+                                                    <td>POST</td>
+                                                    <td>Create a transaction via browser client</td>
+                                                </tr>
+
+                                                <tr class="table-active">
+                                                    <th scope="row">/transactions/money/sent</th>
+                                                    <td>GET</td>
+                                                    <td>Get money sent from verified transactions</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/transactions/money/received</th>
+                                                    <td>GET</td>
+                                                    <td>Get money received from verified transactions</td>
+                                                </tr>
+
+                                                <tr class="table-active">
+                                                    <th scope="row">/transactions/create</th>
+                                                    <td>POST</td>
+                                                    <td>Create a transaction</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/broadcast/transaction</th>
+                                                    <td>POST</td>
+                                                    <td>Broadcast a transaction to other nodes</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/broadcast/ring</th>
+                                                    <td>POST</td>
+                                                    <td>Broadcast the node to other nodes (for Bootstrap node)</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/broadcast/block</th>
+                                                    <td>POST</td>
+                                                    <td>Broadcast a block to other nodes</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/nodes/register</th>
+                                                    <td>POST</td>
+                                                    <td>Register node to bootstrap ring</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+
+
+                                            <table class="table table-hover" style="color:#fff">
+                                                <h5>Frontend</h5>
+                                                <thead>
+                                                <tr>
+                                                    <th scope="col">URL</th>
+                                                    <th scope="col">Type</th>
+                                                    <th scope="col">Action</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr class="table-active">
+                                                    <th scope="row">/</th>
+                                                    <td>GET</td>
+                                                    <td>Home page</tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/wallet</th>
+                                                    <td>GET</td>
+                                                    <td>Node's wallet</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/help</th>
+                                                    <td>GET</td>
+                                                    <td>User Manual</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/about</th>
+                                                    <td>GET</td>
+                                                    <td>Application Information</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/contact</th>
+                                                    <td>GET</td>
+                                                    <td>Contact page</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">/blockchain</th>
+                                                    <td>GET</td>
+                                                    <td>Current Version of Blockchain</td>
+                                                </tr>
+                                                </tbody>
+
+                                            </table>
+
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <p style="margin-bottom:1cm;"></p>
+
+                <p style="margin-bottom:1cm;"></p>
+
+
+                <p style="margin-bottom:1cm;"></p>
+
+            </div>
+
+        </div>
+        <div class="col-1"></div>
+    </div>
+
+
+
+
+
+
+{% endblock %}

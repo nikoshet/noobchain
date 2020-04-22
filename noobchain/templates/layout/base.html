@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static', filename='layout.css') }}">
+    <script type=text/javascript src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <meta charset="UTF-8">
+    <title>Noobchain</title>
+</head>
+
+<body>
+{% include 'layout/navbar.html' %}
+
+<div class="col-xs-12" style="height:10px;"></div>
+
+{% block content %}
+    {% if messages %}
+        {% for message in messages %}
+                {{ message }}
+        {% endfor %}
+    {% endif %}
+{% endblock %}
+
+<div class="col-xs-12" style="height:10px;"></div>
+
+</body>
+
+{% include 'layout/footer.html' %}
+
+</html>

@@ -1,0 +1,132 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-1"></div>
+        <div class="col-10">
+            <div class="jumbotron">
+                <div class="container" xmlns="http://www.w3.org/1999/html">
+                    <div class="row">
+                        <div class="col s4">
+                            <div class="card-panel grey lighten-5 z-depth-1">
+                                <div class="row valign-wrapper left">
+                                    <div class="col s2">
+                                        <img src="{{ url_for('static', filename='profile_image_2.png') }}"
+                                             alt=""
+                                             style="height:200px; margin-left: 60px;"
+                                             class="circle responsive-img">
+                                    </div>
+                                    <div class="col s2">
+                                        <p style="margin-top:1cm;"></p>
+                                        <h5 class="display-6" style="margin-right: 10px">Hello, node {{ data['NODE_ID'] }}!</h5>
+                                        <p class="flow-text" style="margin-right: 10px">IP Address: {{ data['ADDRESS'] }} </br>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col s6">
+                            <div class="card border-secondary mb-4">
+                                <form>
+                                    <fieldset>
+                                        <div class="card-header"><h5 style="color:#fff">Check Your Balance Statistics:</h5></div>
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label for="balance">Available Balance (NBCs)</label>
+                                                <input type="text" class="form-control" id="balance" disabled value="{{ data['BALANCE'] }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="nbc_received">Total Verified NBCs Received</label>
+                                                <input type="text" class="form-control" disabled value="{{ data['MONEY_RECEIVED'] }}" id="nbc_received">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="nbc_sent">Total Verified NBCs Sent</label>
+                                                <input type="text" class="form-control" disabled value="{{ data['MONEY_SENT'] }}" id="nbc_sent">
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="divider"></div>
+                    </div>
+
+                    <p style="margin-bottom:1cm;"></p>
+
+                    <p style="margin-bottom:1cm;"></p>
+
+
+                    <div class="row">
+
+                        <div class="col s12">
+                            <h5 class="display-5">Transactions Made In Last Verified Block:</h5>
+                            <p style="color:#fff">Last Verified Block Id: </p> {{ data['BLOCK_INDEX'] }}
+                            <p style="color:#fff">Last Verified Block Nonce: </p> {{ data['BLOCK_NONCE'] }}
+                            <p style="color:#fff">Last Verified Block Time: </p> {{ data['BLOCK_DATETIME'] }}
+                            <table class="table table-hover" style="color:#fff" id="transactions_table">
+                                <thead>
+                                <tr>
+                                    <th scope="col">From</th>
+                                    <th scope="col">To</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col">Change</th>
+                                    <th scope="col">Trans_Id</th>
+                                </tr>
+                                </thead>
+                                <!--<tbody>
+                                <tr class="table-active">
+                                    <th scope="row">Primary</th>
+                                    <td>Column content</td>
+                                    <td>Column content</td>
+                                    <td>Column content</td>
+                                </tr>
+                                </tbody>-->
+                            </table>
+
+                        </div>
+                    </div>
+
+                    <p style="margin-bottom:1cm;"></p>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-1"></div>
+    </div>
+
+
+
+    <!-- Bootstrap/Jquery core JavaScript -->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/main.js"></script>
+    <script>
+        $(function () {
+            //e.preventDefault();
+            //value = document.getElementById("amount").value
+
+            $.ajax({
+              url: '{{ data['ADDRESS'] }}' + "/transactions/view",
+              type: "GET",
+              headers: {'Access-Control-Allow-Origin':'*'},
+              dataType : 'json',
+              success: function(data){
+                console.log(data);
+
+                var trHTML = '';
+                $.each(data, function (i, item) {
+                    trHTML += '<tbody><tr class="table-active"><td>' + item.node_id + '</td><td>' + item.receiver_address + '</td><td>' + item.amount + '</td><td>' + item.change + '</td><td>' + item.transaction_id + '</td></tr></tbody>';
+                });
+                $('#transactions_table').append(trHTML);
+              },
+              error: function(error){
+                console.log('Error');
+              }
+            });
+
+         });
+
+    </script>
+
+{% endblock %}

@@ -1,0 +1,7 @@
+__pycache__
+.idea
+.DS_Store
+
+noobchain/__pycache__
+noobchain/.DS_Store
+noobchain/backend/__pycache__

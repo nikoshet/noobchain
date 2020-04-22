@@ -1,0 +1,90 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="row">
+        <div class="col-1"></div>
+        <div class="col-10">
+            <div class="jumbotron">
+                <div class="container" xmlns="http://www.w3.org/1999/html">
+                    <div class="row">
+
+                        <div class="col s12">
+                            <div class="card border-secondary mb-4">
+                                <form>
+                                    <fieldset>
+                                        <div class="card-header"><h5 style="color:#fff">Basic Functionality Of The Web Application:</h5></div>
+                                        <div class="card-body">
+
+
+
+
+                                            <table class="table table-hover" style="color:#fff">
+                                                <thead>
+                                                <tr>
+                                                    <th scope="col">Functionality</th>
+                                                    <th scope="col">Page</th>
+                                                    <th scope="col">Info</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr class="table-active">
+                                                    <th scope="row">Create A Transaction</th>
+                                                    <td>Home</td>
+                                                    <td>User inserts his public key, the public key of the receiver, and the amount
+                                                    of NBCs to transfer. After submitting the transaction, a message will pop up that
+                                                    will inform him if the transaction was made successfully or if any errors occured.</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">View Transactions Made In Last Verified Block</th>
+                                                    <td>Wallet</td>
+                                                    <td>There is a table that contains information about the transactions made in the last
+                                                    verified block of the blockchain.</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">Balance Statistics</th>
+                                                    <td>Wallet</td>
+                                                    <td>An area that shows the available balance of the current node, as well as the total amount
+                                                        of verified NBCs received and sent.</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">View Blockchain</th>
+                                                    <td>Blockchain</td>
+                                                    <td>An area that shows the current blockchain.</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">CPU / Memory Usage</th>
+                                                    <td>Home</td>
+                                                    <td>An area shows the  current CPU and Memory usage of the current node, in order to monitor
+                                                        the system's performance.</td>
+                                                </tr>
+                                                <tr class="table-active">
+                                                    <th scope="row">Application's Info</th>
+                                                    <td>About</td>
+                                                    <td>A page that includes all the necessary info for the functionality of the Blockchain (Noobchain)
+                                                        Application, as well as the REST API implemented.</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="divider"></div>
+                    </div>
+
+                    <p style="margin-bottom:1cm;"></p>
+
+                    <p style="margin-bottom:1cm;"></p>
+
+
+                    <p style="margin-bottom:1cm;"></p>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-1"></div>
+    </div>
+
+{% endblock %}

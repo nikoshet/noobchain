@@ -1,5 +1,5 @@
 Flask==1.1.1
-pycryptodome==3.4.3
+pycryptodome==3.6.6
 flask-cors==3.0.8
 psutil==5.7.0
 requests==2.21.0
